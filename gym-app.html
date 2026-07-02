@@ -940,19 +940,33 @@ function isToday(date) {
 function dayKey(date) {
   return date.toISOString().split('T')[0];
 }
+function getSlotId(slotVal) {
+  // Il valore dello slot può essere string (vecchio formato) o {id, scale}
+  if (!slotVal) return null;
+  return typeof slotVal === 'object' ? slotVal.id : slotVal;
+}
+function getSlotScale(slotVal) {
+  if (!slotVal) return 1;
+  return typeof slotVal === 'object' ? (slotVal.scale || 1) : 1;
+}
+
 function calcCalories(plan) {
-  let cal=0;
+  let cal = 0;
   SLOTS.forEach(slot => {
-    const rid = plan[slot];
-    if (rid) { const r = getRecipe(rid); if(r) cal += r.calories; }
+    const sv = plan[slot];
+    const rid = getSlotId(sv);
+    const scale = getSlotScale(sv);
+    if (rid) { const r = getRecipe(rid); if (r) cal += Math.round(r.calories * scale); }
   });
   return cal;
 }
 function calcMacros(plan) {
-  let m={protein:0,carbs:0,fat:0};
+  let m = { protein:0, carbs:0, fat:0 };
   SLOTS.forEach(slot => {
-    const rid = plan[slot];
-    if (rid) { const r = getRecipe(rid); if(r) {m.protein+=r.macros.protein;m.carbs+=r.macros.carbs;m.fat+=r.macros.fat;} }
+    const sv = plan[slot];
+    const rid = getSlotId(sv);
+    const scale = getSlotScale(sv);
+    if (rid) { const r = getRecipe(rid); if (r) { m.protein += Math.round(r.macros.protein*scale); m.carbs += Math.round(r.macros.carbs*scale); m.fat += Math.round(r.macros.fat*scale); } }
   });
   return m;
 }
@@ -988,14 +1002,16 @@ function renderPiano() {
         ${totalCal ? `<div style="font-size:.7rem;font-weight:700;color:var(--primary);">${totalCal} kcal</div>` : ''}
       </div>`;
     SLOTS.forEach(slot => {
-      const rid = dp[slot];
+      const sv = dp[slot];
+      const rid = getSlotId(sv);
+      const scale = getSlotScale(sv);
       const rec = rid ? getRecipe(rid) : null;
       html += `<div style="margin-bottom:4px;">
         <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">${SLOT_LABELS[slot]}</div>`;
       if (rec) {
         html += `<div class="slot-item" onclick="event.stopPropagation();openRecipeDetail('${rec.id}')" oncontextmenu="event.preventDefault();removeMeal('${dk}','${slot}')">
           <span style="font-size:1.1rem;">${rec.emoji}</span>
-          <span style="font-size:.7rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${rec.name}</span>
+          <span style="font-size:.7rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${rec.name}${scale!==1?' ×'+scale:''}</span>
         </div>`;
       } else {
         html += `<button class="slot-add" onclick="event.stopPropagation();openMealPicker('${dk}','${slot}')">+</button>`;
@@ -1041,16 +1057,22 @@ function renderPiano() {
           <div class="f-seg" style="width:${macros.fat/total*100}%;height:8px;border-radius:4px;"></div>
         </div>`;
     SLOTS.forEach(slot => {
-      const rid = dp[slot];
+      const sv = dp[slot];
+      const rid = getSlotId(sv);
+      const scale = getSlotScale(sv);
       const rec = rid ? getRecipe(rid) : null;
+      const scaledCal = rec ? Math.round(rec.calories * scale) : 0;
+      const scaledP = rec ? Math.round(rec.macros.protein * scale) : 0;
+      const scaledC = rec ? Math.round(rec.macros.carbs * scale) : 0;
+      const scaledF = rec ? Math.round(rec.macros.fat * scale) : 0;
       html += `<div style="margin-bottom:10px;">
         <div style="font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:6px;">${SLOT_LABELS[slot]}</div>`;
       if (rec) {
         html += `<div class="slot-item" onclick="openRecipeDetail('${rec.id}')">
           <span style="font-size:1.2rem;">${rec.emoji}</span>
           <div style="flex:1;">
-            <div style="font-size:.85rem;font-weight:700;">${esc(rec.name)}</div>
-            <div style="font-size:.72rem;color:var(--muted);">${rec.calories} kcal · P:${rec.macros.protein}g C:${rec.macros.carbs}g G:${rec.macros.fat}g</div>
+            <div style="font-size:.85rem;font-weight:700;">${esc(rec.name)}${scale!==1?` <span style="color:var(--primary);font-size:.75rem;">×${scale}</span>`:''}</div>
+            <div style="font-size:.72rem;color:var(--muted);">${scaledCal} kcal · P:${scaledP}g C:${scaledC}g G:${scaledF}g</div>
           </div>
           <button onclick="event.stopPropagation();removeMeal('${state.activeDay}','${slot}')" style="background:none;color:var(--danger);font-size:1.1rem;padding:4px;">✕</button>
         </div>`;
@@ -1104,12 +1126,11 @@ function scoraRicetta(recipe, slotKcalTarget, remainingMacros) {
   return kcalScore * 0.4 + pScore * 0.3 + cScore * 0.2 + fScore * 0.1;
 }
 
-function generaGiornoSmartRicette(target) {
+function generaGiornoSmartRicette() {
   const macroTarget = calcMacroTarget();
   // Distribuzione kcal per slot
   const pesi = { colazione: 0.25, pranzo: 0.35, cena: 0.30, snack: 0.10 };
   const result = {};
-  const remaining = { ...macroTarget };
 
   SLOTS.forEach(slot => {
     const pool = RECIPES.filter(r => r.category === slot);
@@ -1120,22 +1141,32 @@ function generaGiornoSmartRicette(target) {
       fat:     Math.round(macroTarget.fat * pesi[slot])
     };
 
-    // Calcola punteggio per ogni ricetta del pool
-    const scored = pool.map(r => ({
-      r,
-      score: scoraRicetta(r, slotKcal, slotMacros)
-    })).sort((a, b) => b.score - a.score);
+    // Calcola punteggio per ogni ricetta considerando scaling
+    const scored = pool.map(r => {
+      // Fattore di scala: quante porzioni servono per avvicinarsi al target
+      const scale = Math.max(0.5, Math.min(3.0, slotKcal / r.calories));
+      const scaledCal = Math.round(r.calories * scale);
+      const scaledMacros = {
+        protein: Math.round(r.macros.protein * scale),
+        carbs:   Math.round(r.macros.carbs * scale),
+        fat:     Math.round(r.macros.fat * scale)
+      };
+      const kcalScore = 1 - Math.min(Math.abs(scaledCal - slotKcal) / slotKcal, 1);
+      const pScore = 1 - Math.min(Math.abs(scaledMacros.protein - slotMacros.protein) / Math.max(slotMacros.protein,1), 1);
+      const cScore = 1 - Math.min(Math.abs(scaledMacros.carbs - slotMacros.carbs) / Math.max(slotMacros.carbs,1), 1);
+      const fScore = 1 - Math.min(Math.abs(scaledMacros.fat - slotMacros.fat) / Math.max(slotMacros.fat,1), 1);
+      return {
+        r,
+        scale: Math.round(scale * 10) / 10,
+        score: kcalScore * 0.4 + pScore * 0.3 + cScore * 0.2 + fScore * 0.1
+      };
+    }).sort((a, b) => b.score - a.score);
 
-    // Prendi le top 3 e scegline una a caso per varietà
+    // Top 3 per varietà casuale
     const top = scored.slice(0, Math.min(3, scored.length));
-    const chosen = top[Math.floor(Math.random() * top.length)].r;
-    result[slot] = chosen.id;
-
-    // Aggiorna i macro residui
-    remaining.protein -= chosen.macros.protein;
-    remaining.carbs   -= chosen.macros.carbs;
-    remaining.fat     -= chosen.macros.fat;
-    remaining.kcal    -= chosen.calories;
+    const chosen = top[Math.floor(Math.random() * top.length)];
+    // Salva id + fattore di scala
+    result[slot] = { id: chosen.r.id, scale: chosen.scale };
   });
 
   return result;
@@ -1183,7 +1214,7 @@ function openMealPicker(dk, slot) {
 function assignMeal(dk, slot, rid) {
   const plan = getPlan();
   if (!plan[dk]) plan[dk] = {};
-  plan[dk][slot] = rid;
+  plan[dk][slot] = { id: rid, scale: 1 };
   savePlan(plan);
   closeModal();
   renderPiano();
@@ -1436,7 +1467,9 @@ function aggregateIngredients() {
   const map = {};
   Object.values(plan).forEach(dp => {
     SLOTS.forEach(slot => {
-      const rid = dp[slot];
+      const sv = dp[slot];
+      const rid = getSlotId(sv);
+      const scale = getSlotScale(sv);
       if (!rid) return;
       const r = getRecipe(rid);
       if (!r) return;
@@ -1444,7 +1477,7 @@ function aggregateIngredients() {
         const key = ing.name.toLowerCase().trim();
         if (!map[key]) map[key] = {name:ing.name, amount:0, unit:ing.unit, cat:categorizIngredient(ing.name)};
         if (map[key].unit === ing.unit) {
-          map[key].amount += ing.amount;
+          map[key].amount += Math.round(ing.amount * scale);
         }
       });
     });
