@@ -6,1497 +6,1740 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Gym Tracker</title>
+<meta name="apple-mobile-web-app-title" content="DietApp">
+<meta name="description" content="La tua app dieta personale">
+<link rel="manifest" href="/gymtracker/manifest.json">
+<title>🍽️ DietApp</title>
 <style>
 :root {
   --bg: #0f0f1a;
-  --card: #1e1e2e;
-  --card-inner: #12121f;
-  --primary: #2196F3;
+  --card: #1a1a2e;
+  --card2: #16213e;
+  --inner: #12121f;
+  --primary: #FF6B35;
+  --secondary: #4ECDC4;
   --success: #4CAF50;
-  --warning: #FF9800;
-  --danger: #F44336;
-  --text: #e0e0e0;
+  --danger: #e74c3c;
+  --text: #f0f0f0;
   --muted: #888;
   --border: #2a2a3e;
-  --radius: 12px;
-  --radius-sm: 8px;
+  --col-col: #FFB347;
+  --col-pra: #4ECDC4;
+  --col-cen: #9B59B6;
+  --col-sna: #2ECC71;
+  --nav-h: 64px;
+  --radius: 14px;
 }
-body.light-mode {
-  --bg: #f5f5f5;
+[data-theme="light"] {
+  --bg: #fafafa;
   --card: #ffffff;
-  --card-inner: #f0f0f0;
+  --card2: #f5f5f5;
+  --inner: #eeeeee;
   --text: #1a1a1a;
   --muted: #666;
-  --border: #ddd;
+  --border: #e0e0e0;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
-#pin-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
-.pin-logo { font-size: 56px; }
-.pin-title { font-size: 22px; font-weight: 700; color: var(--text); }
-.pin-dots { display: flex; gap: 16px; }
-.pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--primary); background: transparent; transition: background 0.15s; }
-.pin-dot.filled { background: var(--primary); }
-.pin-error { color: var(--danger); font-size: 14px; min-height: 18px; }
-.pin-keypad { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; }
-.pin-key { height: 72px; width: 72px; border-radius: 50%; border: none; background: var(--card); color: var(--text); font-size: 24px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; }
-.pin-key:active { background: var(--primary); transform: scale(0.93); }
-.app-container { display: none; flex-direction: column; min-height: 100vh; }
-.app-container.visible { display: flex; }
-.top-header { position: sticky; top: 0; z-index: 100; background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
-.top-header h1 { font-size: 18px; font-weight: 700; }
-.top-header .header-right { display: flex; gap: 10px; align-items: center; }
-.theme-btn { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 4px; }
-.main-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 80px; }
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: var(--card); border-top: 1px solid var(--border); display: flex; }
-.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; cursor: pointer; font-size: 10px; color: var(--muted); border: none; background: none; min-height: 56px; transition: color 0.2s; }
-.nav-item.active { color: var(--primary); }
-.nav-item span:first-child { font-size: 20px; margin-bottom: 2px; }
-.page { display: none; }
-.page.active { display: block; }
-.card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; border: 1px solid var(--border); }
-.card-inner { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; }
-.card-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: var(--radius-sm); border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; min-height: 44px; }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-success { background: var(--success); color: #fff; }
-.btn-danger { background: var(--danger); color: #fff; }
-.btn-warning { background: var(--warning); color: #fff; }
-.btn-ghost { background: var(--card-inner); color: var(--text); border: 1px solid var(--border); }
-.btn-sm { padding: 6px 12px; font-size: 12px; min-height: 34px; }
-.btn-full { width: 100%; }
-input[type=text], input[type=number], input[type=password], input[type=time], select, textarea {
-  background: var(--card-inner); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm);
-  padding: 10px 12px; font-size: 14px; width: 100%; font-family: inherit; transition: border 0.2s;
-}
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
-textarea { resize: vertical; min-height: 60px; }
-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; display: block; }
-.scheda-banner { background: linear-gradient(135deg, #1e1e2e, #12121f); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; border: 1px solid var(--border); }
-.scheda-badge { display: inline-block; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
-.scheda-info { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-.scheda-sub { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
-.progress-bar { height: 8px; background: var(--card-inner); border-radius: 4px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s; }
-.day-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
-.day-btn { padding: 14px 8px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.15s; min-height: 70px; }
-.day-btn.push { background: rgba(244,67,54,0.12); border-color: rgba(244,67,54,0.3); color: #F44336; }
-.day-btn.push.active, .day-btn.push:active { background: #F44336; color: #fff; border-color: #F44336; }
-.day-btn.pull { background: rgba(33,150,243,0.12); border-color: rgba(33,150,243,0.3); color: #2196F3; }
-.day-btn.pull.active, .day-btn.pull:active { background: #2196F3; color: #fff; border-color: #2196F3; }
-.day-btn.legs { background: rgba(76,175,80,0.12); border-color: rgba(76,175,80,0.3); color: #4CAF50; }
-.day-btn.legs.active, .day-btn.legs:active { background: #4CAF50; color: #fff; border-color: #4CAF50; }
-.workout-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-.workout-stat { background: var(--card-inner); border-radius: var(--radius-sm); padding: 8px 6px; text-align: center; }
-.workout-stat .val { font-size: 15px; font-weight: 700; color: var(--primary); }
-.workout-stat .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.chrono-display { font-size: 28px; font-weight: 800; text-align: center; color: var(--primary); font-variant-numeric: tabular-nums; margin: 6px 0; }
-.exercise-card { background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); }
-.ex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.ex-name { font-size: 15px; font-weight: 700; }
-.ex-sets { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.ex-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.ex-suggestion { font-size: 12px; padding: 6px 10px; border-radius: 6px; margin-bottom: 8px; }
-.ex-suggestion.ok { background: rgba(76,175,80,0.12); color: var(--success); }
-.ex-suggestion.warn { background: rgba(255,152,0,0.12); color: var(--warning); }
-.ex-suggestion.neutral { background: var(--card-inner); color: var(--muted); }
-.rest-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.rest-btn { flex: 1; }
-.rest-btn.running { background: var(--warning); color: #fff; }
-.rest-btn.done { background: var(--success); color: #fff; }
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.stat-card { background: var(--card); border-radius: var(--radius); padding: 16px; text-align: center; border: 1px solid var(--border); }
-.stat-card .number { font-size: 32px; font-weight: 800; color: var(--primary); }
-.stat-card .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
-canvas { display: block; width: 100%; }
-.chart-wrap { background: var(--card-inner); border-radius: var(--radius-sm); padding: 8px; margin-top: 10px; overflow: hidden; }
-.season-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-.season-btn { padding: 10px 4px; border-radius: var(--radius-sm); border: 2px solid var(--border); background: var(--card-inner); cursor: pointer; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.15s; color: var(--text); min-height: 44px; }
-.season-btn.active { border-color: var(--primary); background: rgba(33,150,243,0.15); color: var(--primary); }
-.meal-card { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
-.meal-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
-.meal-option { font-size: 13px; color: var(--text); padding: 4px 0; border-bottom: 1px solid var(--border); }
-.meal-option:last-child { border-bottom: none; }
-.water-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin: 12px 0; }
-.water-glass { font-size: 24px; cursor: pointer; text-align: center; transition: transform 0.15s, opacity 0.15s; opacity: 0.35; }
-.water-glass.filled { opacity: 1; transform: scale(1.1); }
-.macros-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
-.macro-item { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
-.macro-item .mv { font-size: 22px; font-weight: 800; color: var(--primary); }
-.macro-item .ml { font-size: 11px; color: var(--muted); }
-.shopping-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.shopping-item:last-child { border-bottom: none; }
-.shopping-item input[type=checkbox] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--primary); cursor: pointer; }
-.shopping-item label { font-size: 13px; cursor: pointer; flex: 1; margin: 0; }
-.shopping-item label.checked { text-decoration: line-through; color: var(--muted); }
-.tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
-.tag-fresco { background: rgba(33,150,243,0.18); color: #2196F3; }
-.tag-scorta { background: rgba(255,152,0,0.18); color: #FF9800; }
-.tag-stagionale { background: rgba(76,175,80,0.18); color: #4CAF50; }
-.tag-base { background: rgba(136,136,136,0.18); color: #888; }
-.history-item { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; }
-.history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.history-date { font-size: 13px; font-weight: 700; }
-.day-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 700; }
-.badge-push { background: rgba(244,67,54,0.18); color: #F44336; }
-.badge-pull { background: rgba(33,150,243,0.18); color: #2196F3; }
-.badge-legs { background: rgba(76,175,80,0.18); color: #4CAF50; }
-.history-ex { font-size: 12px; color: var(--muted); line-height: 1.6; }
-.history-notes { font-size: 12px; color: var(--warning); margin-top: 4px; }
-.settings-section { margin-bottom: 20px; }
-.settings-section h3 { font-size: 14px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
-.toggle-label { font-size: 14px; }
-.toggle { position: relative; width: 44px; height: 24px; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: background 0.2s; }
-.toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: transform 0.2s; }
-.toggle input:checked + .toggle-slider { background: var(--primary); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
-.notif-days { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.day-check { display: flex; align-items: center; gap: 4px; background: var(--card-inner); padding: 5px 9px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-.day-check input { accent-color: var(--primary); }
-.input-row { margin-bottom: 12px; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 8px; }
-.cal-day { height: 30px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 4px; color: var(--muted); }
-.cal-day.trained { background: var(--primary); color: #fff; font-weight: 700; }
-.cal-day.today { border: 1px solid var(--primary); color: var(--primary); }
-.cal-header { font-size: 10px; color: var(--muted); text-align: center; padding: 4px 0; }
-.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--card); color: var(--text); padding: 12px 20px; border-radius: var(--radius); font-size: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); z-index: 9000; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; border: 1px solid var(--border); white-space: nowrap; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.volume-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin-top: 10px; }
-.vol-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
-.vol-bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.3s; min-height: 4px; }
-.vol-bar.this-week { background: var(--primary); }
-.vol-bar.last-week { background: var(--muted); }
-.vol-label { font-size: 11px; color: var(--muted); }
-.meal-prep-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
-.prep-day { background: var(--card-inner); border-radius: 6px; padding: 6px 4px; }
-.prep-day-name { font-size: 10px; font-weight: 700; color: var(--primary); text-align: center; margin-bottom: 4px; }
-.prep-day-content { font-size: 9px; color: var(--muted); line-height: 1.5; }
-.alert-banner { background: rgba(255,152,0,0.12); border: 1px solid rgba(255,152,0,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--warning); margin-bottom: 12px; display: none; }
-.alert-banner.show { display: block; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+button{cursor:pointer;border:none;outline:none;font-family:inherit;}
+input{font-family:inherit;}
 </style>
 </head>
 <body>
-
-<!-- PIN SCREEN -->
-<div id="pin-screen">
-  <div class="pin-logo">🏋️</div>
-  <div class="pin-title">Gym Tracker</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="dot0"></div>
-    <div class="pin-dot" id="dot1"></div>
-    <div class="pin-dot" id="dot2"></div>
-    <div class="pin-dot" id="dot3"></div>
-  </div>
-  <div class="pin-error" id="pin-error"></div>
-  <div class="pin-keypad">
-    <button class="pin-key" onclick="pinPress('1')">1</button>
-    <button class="pin-key" onclick="pinPress('2')">2</button>
-    <button class="pin-key" onclick="pinPress('3')">3</button>
-    <button class="pin-key" onclick="pinPress('4')">4</button>
-    <button class="pin-key" onclick="pinPress('5')">5</button>
-    <button class="pin-key" onclick="pinPress('6')">6</button>
-    <button class="pin-key" onclick="pinPress('7')">7</button>
-    <button class="pin-key" onclick="pinPress('8')">8</button>
-    <button class="pin-key" onclick="pinPress('9')">9</button>
-    <button class="pin-key" onclick="pinPress('del')" style="font-size:18px">⌫</button>
-    <button class="pin-key" onclick="pinPress('0')">0</button>
-    <button class="pin-key" onclick="pinPress('ok')" style="background:var(--primary);color:#fff">OK</button>
-  </div>
+<div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+  <div style="font-size:3rem;">🍽️</div>
+  <div style="font-size:1.5rem;font-weight:700;color:var(--primary);">DietApp</div>
+  <div style="font-size:.9rem;color:var(--muted);">Inserisci il PIN</div>
+  <div id="pin-dots" style="display:flex;gap:16px;"></div>
+  <div id="pin-grid" style="display:grid;grid-template-columns:repeat(3,72px);gap:12px;"></div>
+  <div id="pin-error" style="color:#e74c3c;font-size:.85rem;opacity:0;transition:opacity .3s;">PIN errato</div>
 </div>
 
-<!-- APP -->
-<div class="app-container" id="app">
-  <div class="top-header">
-    <h1 id="page-title">🏋️ Allenamento</h1>
-    <div class="header-right">
-      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
-    </div>
-  </div>
-  <div class="main-content" id="main-content">
-    <!-- PAGE 1: ALLENAMENTO -->
-    <div class="page active" id="page-allena">
-      <div class="alert-banner" id="scheda-alert">⚠️ Sono passate 8 settimane! È ora di cambiare scheda.</div>
-      <div class="scheda-banner" id="scheda-banner">
-        <div class="scheda-badge" id="scheda-badge">SCHEDA A</div>
-        <div class="scheda-info" id="scheda-info">Settimana 1 di 8</div>
-        <div class="scheda-sub" id="scheda-sub">Iniziata il --</div>
-        <div class="progress-bar"><div class="progress-fill" id="scheda-progress" style="width:12.5%"></div></div>
-      </div>
-      <div class="day-btns">
-        <button class="day-btn push" onclick="selectDay('PUSH')"><span style="font-size:20px">🔴</span>PUSH</button>
-        <button class="day-btn pull" onclick="selectDay('PULL')"><span style="font-size:20px">🔵</span>PULL</button>
-        <button class="day-btn legs" onclick="selectDay('LEGS')"><span style="font-size:20px">🟢</span>LEGS</button>
-      </div>
-      <div id="workout-area" style="display:none">
-        <div class="workout-stats" id="workout-stats">
-          <div class="workout-stat"><div class="val" id="ws-dur">--</div><div class="lbl">Durata est.</div></div>
-          <div class="workout-stat"><div class="val" id="ws-ex">0</div><div class="lbl">Esercizi</div></div>
-          <div class="workout-stat"><div class="val" id="ws-sets">0</div><div class="lbl">Serie tot.</div></div>
-          <div class="workout-stat"><div class="val chrono-display" id="chrono" style="font-size:15px">00:00</div><div class="lbl">Tempo</div></div>
-        </div>
-        <div id="exercises-list"></div>
-        <button class="btn btn-success btn-full" onclick="saveWorkout()" style="margin-top:8px">💾 Salva Allenamento</button>
-      </div>
-    </div>
-
-    <!-- PAGE 2: PROGRESSI -->
-    <div class="page" id="page-progressi">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="number" id="p-sessions">0</div><div class="label">Sessioni totali</div></div>
-        <div class="stat-card"><div class="number" id="p-week">0</div><div class="label">Questa settimana</div></div>
-        <div class="stat-card"><div class="number" id="p-streak">0</div><div class="label">🔥 Streak giorni</div></div>
-        <div class="stat-card"><div class="number" id="p-prs">0</div><div class="label">Personal Record</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">⚖️ Peso Corporeo</div>
-        <div style="display:flex;gap:8px;align-items:flex-end">
-          <div style="flex:1" class="input-row">
-            <label>Peso oggi (kg)</label>
-            <input type="number" id="weight-input" step="0.1" min="40" max="200" placeholder="es. 75.5">
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="addWeight()" style="margin-bottom:12px">+</button>
-        </div>
-        <div id="weight-trend" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
-        <div class="chart-wrap"><canvas id="weight-chart" height="120"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">📊 Progressione Esercizio</div>
-        <div class="input-row">
-          <label>Seleziona esercizio</label>
-          <select id="ex-chart-select" onchange="drawExerciseChart()"></select>
-        </div>
-        <div class="chart-wrap"><canvas id="ex-chart" height="120"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">📦 Volume Settimanale</div>
-        <div id="volume-info" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
-        <div class="volume-bars">
-          <div class="vol-bar-wrap"><div class="vol-bar last-week" id="vol-bar-last" style="height:40%"></div><div class="vol-label">Sett. scorsa</div></div>
-          <div class="vol-bar-wrap"><div class="vol-bar this-week" id="vol-bar-this" style="height:60%"></div><div class="vol-label">Questa sett.</div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">📅 Statistiche Mensili</div>
-        <div class="stats-grid" style="margin-bottom:12px">
-          <div class="stat-card"><div class="number" id="m-sessions" style="font-size:22px">0</div><div class="label">Sessioni</div></div>
-          <div class="stat-card"><div class="number" id="m-prs" style="font-size:22px">0</div><div class="label">PR battuti</div></div>
-          <div class="stat-card"><div class="number" id="m-vol" style="font-size:18px">0</div><div class="label">Volume (kg)</div></div>
-          <div class="stat-card"><div class="number" id="m-dur" style="font-size:18px">--</div><div class="label">Durata media</div></div>
-        </div>
-        <div class="card-title" style="font-size:13px">Giorni allenati</div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
-          <div class="cal-header">L</div><div class="cal-header">M</div><div class="cal-header">M</div>
-          <div class="cal-header">G</div><div class="cal-header">V</div><div class="cal-header">S</div><div class="cal-header">D</div>
-        </div>
-        <div class="calendar-grid" id="calendar-grid"></div>
-      </div>
-    </div>
-
-    <!-- PAGE 3: STORICO -->
-    <div class="page" id="page-storico">
-      <div class="card-title" style="margin-bottom:12px">📋 Ultimi 20 allenamenti</div>
-      <div id="history-list"><p style="color:var(--muted);text-align:center;padding:30px">Nessun allenamento salvato</p></div>
-    </div>
-
-    <!-- PAGE 4: DIETA -->
-    <div class="page" id="page-dieta">
-      <div class="card">
-        <div class="card-title">🗓️ Stagione</div>
-        <div class="season-btns">
-          <button class="season-btn" id="btn-estate" onclick="selectSeason('estate')">☀️ Estate</button>
-          <button class="season-btn" id="btn-autunno" onclick="selectSeason('autunno')">🍂 Autunno</button>
-          <button class="season-btn" id="btn-inverno" onclick="selectSeason('inverno')">❄️ Inverno</button>
-          <button class="season-btn" id="btn-primavera" onclick="selectSeason('primavera')">🌸 Primavera</button>
-        </div>
-      </div>
-      <div class="card" id="diet-meals">
-        <div class="card-title">🍽️ Piano Alimentare</div>
-        <div id="meals-content"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">🔢 Calcolatore Macros</div>
-        <div class="input-row"><label>Peso corporeo (kg)</label><input type="number" id="macro-weight" placeholder="75" min="40" max="200"></div>
-        <div class="input-row"><label>Obiettivo</label>
-          <select id="macro-goal">
-            <option value="massa">💪 Massa</option>
-            <option value="definizione">🔥 Definizione</option>
-            <option value="mantenimento">⚖️ Mantenimento</option>
-          </select>
-        </div>
-        <button class="btn btn-primary btn-full" onclick="calcMacros()">Calcola</button>
-        <div class="macros-grid" id="macros-result" style="display:none">
-          <div class="macro-item"><div class="mv" id="mac-cal">0</div><div class="ml">Calorie</div></div>
-          <div class="macro-item"><div class="mv" id="mac-pro">0g</div><div class="ml">Proteine</div></div>
-          <div class="macro-item"><div class="mv" id="mac-carb">0g</div><div class="ml">Carboidrati</div></div>
-          <div class="macro-item"><div class="mv" id="mac-fat">0g</div><div class="ml">Grassi</div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">💧 Tracker Acqua</div>
-        <div class="water-grid" id="water-grid"></div>
-        <div class="progress-bar" style="margin:8px 0"><div class="progress-fill" id="water-progress" style="width:0%"></div></div>
-        <div style="font-size:13px;color:var(--muted);text-align:center" id="water-label">0 / 8 bicchieri</div>
-        <button class="btn btn-ghost btn-sm btn-full" onclick="resetWater()" style="margin-top:8px">Reset</button>
-      </div>
-      <div class="card">
-        <div class="card-title">🥘 Meal Prep Settimanale</div>
-        <div class="meal-prep-grid" id="meal-prep-grid"></div>
-      </div>
-    </div>
-
-    <!-- PAGE 5: SPESA -->
-    <div class="page" id="page-spesa">
-      <div class="card">
-        <div class="card-title">🛒 Lista della Spesa</div>
-        <div class="season-btns">
-          <button class="season-btn" id="spesa-btn-estate" onclick="selectSpesaSeason('estate')">☀️ Estate</button>
-          <button class="season-btn" id="spesa-btn-autunno" onclick="selectSpesaSeason('autunno')">🍂 Autunno</button>
-          <button class="season-btn" id="spesa-btn-inverno" onclick="selectSpesaSeason('inverno')">❄️ Inverno</button>
-          <button class="season-btn" id="spesa-btn-primavera" onclick="selectSpesaSeason('primavera')">🌸 Primavera</button>
-        </div>
-        <div class="progress-bar" style="margin:8px 0"><div class="progress-fill" id="spesa-progress" style="width:0%"></div></div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center" id="spesa-count">0 / 0 articoli</div>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <button class="btn btn-ghost btn-sm" onclick="selectAllSpesa()" style="flex:1">Seleziona tutto</button>
-          <button class="btn btn-ghost btn-sm" onclick="clearSpesa()" style="flex:1">Azzera</button>
-        </div>
-        <div id="spesa-list"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">🏪 Sempre in Dispensa</div>
-        <div id="pantry-list"></div>
-      </div>
-    </div>
-
-    <!-- PAGE 6: IMPOSTAZIONI -->
-    <div class="page" id="page-impostazioni">
-      <div class="card">
-        <div class="settings-section">
-          <h3>👤 Profilo</h3>
-          <div class="input-row"><label>Nome</label><input type="text" id="s-nome" placeholder="Il tuo nome"></div>
-          <div class="input-row"><label>Peso (kg)</label><input type="number" id="s-peso" min="40" max="200" step="0.1"></div>
-          <div class="input-row"><label>Altezza (cm)</label><input type="number" id="s-altezza" min="140" max="220"></div>
-          <div class="input-row"><label>Età</label><input type="number" id="s-eta" min="10" max="99"></div>
-          <div class="input-row"><label>Obiettivo</label>
-            <select id="s-obiettivo">
-              <option value="massa">💪 Massa</option>
-              <option value="definizione">🔥 Definizione</option>
-              <option value="mantenimento">⚖️ Mantenimento</option>
-            </select>
-          </div>
-          <button class="btn btn-primary btn-full" onclick="saveProfile()">Salva Profilo</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="settings-section">
-          <h3>🔔 Notifiche</h3>
-          <div class="toggle-row">
-            <span class="toggle-label">Abilita notifiche</span>
-            <label class="toggle"><input type="checkbox" id="notif-toggle" onchange="toggleNotif()"><span class="toggle-slider"></span></label>
-          </div>
-          <label style="margin-top:8px">Giorni allenamento</label>
-          <div class="notif-days">
-            <label class="day-check"><input type="checkbox" id="nd-1" value="1" onchange="saveNotifDays()"> Lun</label>
-            <label class="day-check"><input type="checkbox" id="nd-2" value="2" onchange="saveNotifDays()"> Mar</label>
-            <label class="day-check"><input type="checkbox" id="nd-3" value="3" onchange="saveNotifDays()"> Mer</label>
-            <label class="day-check"><input type="checkbox" id="nd-4" value="4" onchange="saveNotifDays()"> Gio</label>
-            <label class="day-check"><input type="checkbox" id="nd-5" value="5" onchange="saveNotifDays()"> Ven</label>
-            <label class="day-check"><input type="checkbox" id="nd-6" value="6" onchange="saveNotifDays()"> Sab</label>
-            <label class="day-check"><input type="checkbox" id="nd-0" value="0" onchange="saveNotifDays()"> Dom</label>
-          </div>
-          <div class="input-row" style="margin-top:10px"><label>Orario reminder</label><input type="time" id="notif-time" value="09:00" onchange="saveNotifTime()"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="settings-section">
-          <h3>🎨 Tema</h3>
-          <div class="toggle-row">
-            <span class="toggle-label">Modalità chiara</span>
-            <label class="toggle"><input type="checkbox" id="theme-toggle" onchange="toggleTheme()"><span class="toggle-slider"></span></label>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="settings-section">
-          <h3>💾 Backup & Ripristino</h3>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" onclick="exportData()" style="flex:1">📤 Esporta</button>
-            <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()" style="flex:1">📥 Importa</button>
-          </div>
-          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
-        </div>
-      </div>
-      <div class="card">
-        <div class="settings-section">
-          <h3>🔐 Cambio PIN</h3>
-          <div class="input-row"><label>PIN attuale</label><input type="password" id="pin-current" maxlength="4" inputmode="numeric" placeholder="••••"></div>
-          <div class="input-row"><label>Nuovo PIN (4 cifre)</label><input type="password" id="pin-new" maxlength="4" inputmode="numeric" placeholder="••••"></div>
-          <div class="input-row"><label>Conferma nuovo PIN</label><input type="password" id="pin-confirm" maxlength="4" inputmode="numeric" placeholder="••••"></div>
-          <button class="btn btn-primary btn-full" onclick="changePin()">Salva PIN</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="settings-section">
-          <h3>ℹ️ Info App</h3>
-          <div style="font-size:13px;color:var(--muted);line-height:2">
-            <div>Versione: <strong style="color:var(--text)">2.0.0</strong></div>
-            <div>Scheda attiva: <strong style="color:var(--primary)" id="info-scheda">A</strong></div>
-            <div>Data inizio scheda: <strong style="color:var(--text)" id="info-start">--</strong></div>
-            <div>Settimana corrente: <strong style="color:var(--text)" id="info-week">1</strong></div>
-          </div>
-          <button class="btn btn-danger btn-sm btn-full" onclick="cambiaScheda()" style="margin-top:10px">🔄 Forza cambio scheda</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <nav class="bottom-nav">
-    <button class="nav-item active" onclick="showPage('allena',0)" id="nav-0"><span>🏋️</span>Allena</button>
-    <button class="nav-item" onclick="showPage('progressi',1)" id="nav-1"><span>📈</span>Progressi</button>
-    <button class="nav-item" onclick="showPage('storico',2)" id="nav-2"><span>📋</span>Storico</button>
-    <button class="nav-item" onclick="showPage('dieta',3)" id="nav-3"><span>🥗</span>Dieta</button>
-    <button class="nav-item" onclick="showPage('spesa',4)" id="nav-4"><span>🛒</span>Spesa</button>
-    <button class="nav-item" onclick="showPage('impostazioni',5)" id="nav-5"><span>⚙️</span>Impost.</button>
+<div id="app" style="display:none;height:100%;display:flex;flex-direction:column;overflow:hidden;">
+  <div id="content" style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav-h) + 8px);"></div>
+  <nav id="bottom-nav" style="position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;">
+    <button class="nav-btn" data-tab="piano" onclick="showTab('piano')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;color:var(--muted);font-size:.65rem;min-height:44px;transition:color .2s;">
+      <span style="font-size:1.4rem;">📅</span><span>Piano</span>
+    </button>
+    <button class="nav-btn" data-tab="ricette" onclick="showTab('ricette')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;color:var(--muted);font-size:.65rem;min-height:44px;transition:color .2s;">
+      <span style="font-size:1.4rem;">🍽️</span><span>Ricette</span>
+    </button>
+    <button class="nav-btn" data-tab="spesa" onclick="showTab('spesa')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;color:var(--muted);font-size:.65rem;min-height:44px;transition:color .2s;">
+      <span style="font-size:1.4rem;">🛒</span><span>Spesa</span>
+    </button>
+    <button class="nav-btn" data-tab="preferiti" onclick="showTab('preferiti')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;color:var(--muted);font-size:.65rem;min-height:44px;transition:color .2s;">
+      <span style="font-size:1.4rem;">❤️</span><span>Preferiti</span>
+    </button>
+    <button class="nav-btn" data-tab="impostazioni" onclick="showTab('impostazioni')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;color:var(--muted);font-size:.65rem;min-height:44px;transition:color .2s;">
+      <span style="font-size:1.4rem;">⚙️</span><span>Impostazioni</span>
+    </button>
   </nav>
 </div>
-<div class="toast" id="toast"></div>
+<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;backdrop-filter:blur(4px);" onclick="closeModal()"></div>
+<div id="modal-container" style="display:none;position:fixed;inset:0;z-index:501;overflow-y:auto;pointer-events:none;"></div>
+
+<style>
+.nav-btn.active{color:var(--primary)!important;}
+.nav-btn.active span:first-child{transform:scale(1.15);display:inline-block;}
+.page{animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);}
+.card2{background:var(--card2);border-radius:var(--radius);}
+.section-title{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:12px;}
+.chip{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:600;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;border-radius:var(--radius);font-size:.9rem;font-weight:600;min-height:44px;transition:all .2s;cursor:pointer;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:active{transform:scale(.97);filter:brightness(.9);}
+.btn-secondary{background:var(--secondary);color:#fff;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-danger{background:var(--danger);color:#fff;}
+.recipe-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;}
+.recipe-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;}
+.recipe-card:active{transform:scale(.97);}
+.recipe-card .emoji{font-size:2.5rem;text-align:center;}
+.recipe-card .r-name{font-size:.85rem;font-weight:700;line-height:1.3;}
+.recipe-card .r-meta{font-size:.75rem;color:var(--muted);}
+.recipe-card .r-cal{font-size:.8rem;font-weight:700;color:var(--primary);}
+.diff-badge{font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:700;}
+.diff-facile{background:#2ECC7133;color:#2ECC71;}
+.diff-medio{background:#F39C1233;color:#F39C12;}
+.diff-difficile{background:#e74c3c33;color:#e74c3c;}
+.fav-btn{position:absolute;top:8px;right:8px;background:none;font-size:1.2rem;min-width:32px;min-height:32px;}
+.day-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);min-width:160px;padding:12px;cursor:pointer;transition:border-color .2s;}
+.day-card.today{border-color:var(--primary);}
+.day-card.active-day{border-color:var(--secondary);}
+.slot-item{background:var(--inner);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;}
+.slot-add{background:transparent;border:1px dashed var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;min-height:44px;cursor:pointer;color:var(--muted);font-size:1.2rem;width:100%;transition:border-color .2s;}
+.slot-add:active,.slot-item:active{opacity:.7;}
+.macro-bar{height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px;}
+.macro-bar .p-seg{background:#FF6B35;}
+.macro-bar .c-seg{background:#4ECDC4;}
+.macro-bar .f-seg{background:#9B59B6;}
+.ingredient-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+.step-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .2s;}
+.step-row.done .step-text{text-decoration:line-through;opacity:.5;}
+.step-num{min-width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;}
+.timer-btn{background:var(--secondary);color:#fff;border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:700;margin-top:4px;}
+.grocery-section{margin-bottom:20px;}
+.grocery-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.grocery-item input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);flex-shrink:0;}
+.grocery-item.checked label{text-decoration:line-through;color:var(--muted);}
+.progress-bar-wrap{height:6px;background:var(--inner);border-radius:3px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .4s;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
+.settings-label{font-size:.95rem;color:var(--text);}
+.settings-sub{font-size:.78rem;color:var(--muted);}
+.toggle{position:relative;width:48px;height:26px;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:13px;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle input:checked+.toggle-slider{background:var(--primary);}
+.toggle input:checked+.toggle-slider:before{transform:translateX(22px);}
+.input-field{background:var(--inner);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.95rem;width:100%;}
+.input-field:focus{outline:none;border-color:var(--primary);}
+select.input-field option{background:var(--card);color:var(--text);}
+.category-filter{display:flex;gap:8px;overflow-x:auto;padding:0 16px 8px;scrollbar-width:none;}
+.category-filter::-webkit-scrollbar{display:none;}
+.cat-btn{flex-shrink:0;padding:8px 16px;border-radius:20px;font-size:.8rem;font-weight:600;background:var(--card);border:1px solid var(--border);color:var(--muted);min-height:36px;transition:all .2s;}
+.cat-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.modal-content{background:var(--card);border-radius:var(--radius) var(--radius) 0 0;margin-top:auto;min-height:60vh;max-width:600px;margin-left:auto;margin-right:auto;pointer-events:all;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.full-modal{background:var(--bg);border-radius:0;min-height:100vh;margin-top:0;}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto;}
+.tag-chip{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600;background:var(--inner);color:var(--muted);margin:2px;}
+.calorie-ring{position:relative;display:flex;align-items:center;justify-content:center;}
+.pantry-item{padding:8px 0;border-bottom:1px solid var(--border);color:var(--muted);font-size:.9rem;}
+@media(min-width:600px){.recipe-grid{grid-template-columns:1fr 1fr 1fr;}}
+</style>
 
 <script>
-
-// ===================== DATA =====================
-const EXERCISES = {
-  A: {
-    PUSH: [
-      {name:'Panca piana con bilanciere', sets:4, reps:'8-10', restSec:90},
-      {name:'Panca inclinata con manubri', sets:3, reps:'10-12', restSec:90},
-      {name:'Shoulder press con manubri', sets:4, reps:'10', restSec:90},
-      {name:'Alzate laterali', sets:3, reps:'12-15', restSec:90},
-      {name:'French press EZ bar', sets:3, reps:'10-12', restSec:90},
-      {name:'Pushdown ai cavi', sets:3, reps:'12', restSec:90}
-    ],
-    PULL: [
-      {name:'Trazioni/Lat machine', sets:4, reps:'8-10', restSec:90},
-      {name:'Rematore con bilanciere', sets:4, reps:'8-10', restSec:90},
-      {name:'Pulley basso', sets:3, reps:'10-12', restSec:90},
-      {name:'Face pull ai cavi', sets:3, reps:'15', restSec:90},
-      {name:'Curl con bilanciere', sets:3, reps:'10-12', restSec:90},
-      {name:'Curl a martello', sets:3, reps:'12', restSec:90}
-    ],
-    LEGS: [
-      {name:'Squat con bilanciere', sets:4, reps:'8-10', restSec:120},
-      {name:'Leg press', sets:3, reps:'10-12', restSec:120},
-      {name:'Romanian deadlift', sets:3, reps:'10', restSec:120},
-      {name:'Leg curl sdraiato', sets:3, reps:'12', restSec:120},
-      {name:'Calf raises', sets:4, reps:'15', restSec:120},
-      {name:'Plank (secondi)', sets:3, reps:'45', restSec:60},
-      {name:'Crunch al cavo', sets:3, reps:'15', restSec:60}
-    ]
-  },
-  B: {
-    PUSH: [
-      {name:'Panca piana con manubri', sets:4, reps:'8-10', restSec:90},
-      {name:'Dip alle parallele', sets:3, reps:'8-12', restSec:90},
-      {name:'Lento avanti con bilanciere', sets:4, reps:'8-10', restSec:90},
-      {name:'Alzate frontali', sets:3, reps:'12', restSec:90},
-      {name:'Skull crusher', sets:3, reps:'10-12', restSec:90},
-      {name:'Cavi incrociati fly', sets:3, reps:'12-15', restSec:90}
-    ],
-    PULL: [
-      {name:'Stacco da terra', sets:4, reps:'6-8', restSec:120},
-      {name:'Trazioni presa stretta', sets:3, reps:'8-10', restSec:90},
-      {name:'Rematore con manubrio', sets:3, reps:'10-12', restSec:90},
-      {name:'Pull over con manubrio', sets:3, reps:'12', restSec:90},
-      {name:'Curl con manubri alternati', sets:3, reps:'10-12', restSec:90},
-      {name:'Curl al cavo basso', sets:3, reps:'12-15', restSec:90}
-    ],
-    LEGS: [
-      {name:'Front squat', sets:4, reps:'8-10', restSec:120},
-      {name:'Affondi con manubri', sets:3, reps:'10-12', restSec:120},
-      {name:'Leg extension', sets:3, reps:'12-15', restSec:120},
-      {name:'Stacco sumo', sets:3, reps:'10', restSec:120},
-      {name:'Calf raises seduto', sets:4, reps:'15-20', restSec:90},
-      {name:'Crunch inverso', sets:3, reps:'15', restSec:60},
-      {name:'Russian twist', sets:3, reps:'20', restSec:60}
-    ]
-  }
-};
-
-const DIET = {
-  estate: {
-    title: '☀️ Estate — Light & Idratante',
-    meals: [
-      {name:'🌅 Colazione', options:['Yogurt greco 0% + frutti di bosco + fiocchi d\'avena + miele','Frullato di banana + proteine whey + latte di mandorla','Pane integrale tostato + avocado + uovo sodo x2']},
-      {name:'🍽️ Pranzo', options:['Riso basmati 80g + tonno al naturale + pomodorini + olio EVO','Insalata di pollo grigliato + lattuga + cetrioli + limone','Pasta integrale 80g + salmone + zucchine + pomodorini']},
-      {name:'⚡ Pre-allenamento', options:['Banana + mandarla 30g','Pane integrale + burro arachidi 20g','Frutta secca 40g + yogurt greco']},
-      {name:'🌙 Cena', options:['Pesce spada grigliato 200g + insalata mista + patate al forno','Pollo marinato 200g + zucchine grigliate + riso 60g','Salmone al vapore 180g + broccoli + riso basmati 60g']},
-      {name:'🌛 Spuntino serale', options:['Ricotta light 100g + miele','Yogurt greco 0% + kiwi','Anguria 300g + arachidi 20g']}
-    ]
-  },
-  autunno: {
-    title: '🍂 Autunno — Transition Bulk',
-    meals: [
-      {name:'🌅 Colazione', options:['Porridge avena 80g + banana + burro arachidi + cannella','Uova strapazzate x3 + pane di segale + mele','Yogurt greco + granola 40g + pere + noci']},
-      {name:'🍽️ Pranzo', options:['Riso basmati 100g + pollo 150g + broccoli + olio EVO','Pasta integrale 100g + macinato tacchino + pomodoro','Patate dolci 200g + bistecca manzo 180g + spinaci saltati']},
-      {name:'⚡ Pre-allenamento', options:['Avena + banana + proteine','Pane di segale + burro arachidi + miele','Yogurt greco + fiocchi avena + frutta secca']},
-      {name:'🌙 Cena', options:['Salmone 180g + lenticchie 150g cotti + verdure al vapore','Pollo 200g + riso integrale 80g + funghi saltati','Bistecca 200g + patate dolci 150g + insalata']},
-      {name:'🌛 Spuntino serale', options:['Fiocchi di latte + noci + miele','Ricotta + cacao amaro + banana','Yogurt greco + frutta di stagione']}
-    ]
-  },
-  inverno: {
-    title: '❄️ Inverno — Full Bulk',
-    meals: [
-      {name:'🌅 Colazione', options:['Porridge 100g + banana + burro arachidi + latte intero','Uova strapazzate x4 + pane integrale + avocado + formaggio','Frullato ipercalorico: latte intero + avena + banana + proteine + arachidi']},
-      {name:'🍽️ Pranzo', options:['Pasta 120g + macinato manzo 150g + pomodoro + parmigiano','Riso integrale 120g + pollo 180g + patate + olio EVO','Bistecca 250g + patate al forno 200g + broccoli + burro']},
-      {name:'⚡ Pre-allenamento', options:['Riso + pollo 100g + banana','Panini integrali + tonno + avocado','Avena + latte intero + proteine + cioccolato fondente']},
-      {name:'🌙 Cena', options:['Salmone 200g + riso 100g + spinaci + burro','Pollo 220g + fagioli borlotti + cavolfiore gratinato','Tacchino 200g + pasta 100g + verdure miste']},
-      {name:'🌛 Spuntino serale', options:['Ricotta intera + miele + noci + cioccolato fondente 80%','Latte intero + avena + banana + burro arachidi','Yogurt greco intero + granola + miele']}
-    ]
-  },
-  primavera: {
-    title: '🌸 Primavera — Cut',
-    meals: [
-      {name:'🌅 Colazione', options:['Yogurt greco 0% + fragole + avena 40g','Uova sode x3 + pane integrale + kiwi','Fiocchi di latte + mirtilli + mandorle 20g']},
-      {name:'🍽️ Pranzo', options:['Pollo 180g + riso basmati 80g + asparagi al vapore','Merluzzo al forno 200g + insalata mista + limone','Tonno + pasta integrale 70g + zucchine + limone']},
-      {name:'⚡ Pre-allenamento', options:['Banana + proteine whey','Pane integrale + ricotta magra + miele','Kiwi x2 + mandorle 20g']},
-      {name:'🌙 Cena', options:['Gamberi 200g + spinaci saltati + limone','Tacchino 180g + zucchine grigliate + radicchio','Merluzzo 200g + broccoli al vapore + ceci 80g']},
-      {name:'🌛 Spuntino serale', options:['Ricotta magra + cannella + fragole','Yogurt greco 0% + kiwi','Fiocchi di latte 100g + mirtilli']}
-    ]
-  }
-};
-
-const MEAL_PREP = {
-  estate: ['Pollo grigliato x 600g', 'Riso basmati 400g', 'Verdure grigliate', 'Uova sode x8', 'Insalata lavata', 'Frutta tagliata', 'Yogurt porzionati'],
-  autunno: ['Pollo al forno x 600g', 'Riso integrale 500g', 'Broccoli al vapore', 'Uova sode x6', 'Lenticchie cotte 400g', 'Patate dolci', 'Funghi saltati'],
-  inverno: ['Pollo/tacchino x800g', 'Pasta/riso 600g', 'Verdure miste', 'Uova sode x8', 'Fagioli cotti 500g', 'Patate al forno', 'Minestra'],
-  primavera: ['Pollo grigliato x 500g', 'Riso basmati 400g', 'Asparagi al vapore', 'Uova sode x6', 'Ceci 300g', 'Verdure crude', 'Frutta fresca']
-};
-
-const SPESA = {
-  estate: [
-    {name:'Pollo 1kg', tag:'fresco'},{name:'Tonno 6 scatolette', tag:'scorta'},{name:'Salmone 400g', tag:'fresco'},
-    {name:'Pesce spada 300g', tag:'fresco'},{name:'Uova 12pz', tag:'fresco'},{name:'Yogurt greco 0% 4x200g', tag:'fresco'},
-    {name:'Ricotta light 250g', tag:'fresco'},{name:'Riso basmati 1kg', tag:'scorta'},{name:'Pasta integrale 500g', tag:'scorta'},
-    {name:'Pane integrale', tag:'fresco'},{name:'Avena 500g', tag:'scorta'},{name:'Anguria', tag:'stagionale'},
-    {name:'Melone', tag:'stagionale'},{name:'Pomodorini 500g', tag:'stagionale'},{name:'Cetrioli 3pz', tag:'stagionale'},
-    {name:'Lattuga/rucola', tag:'stagionale'},{name:'Zucchine 4pz', tag:'stagionale'},{name:'Banane 6pz', tag:'fresco'},
-    {name:'Fragole/frutti di bosco 300g', tag:'stagionale'},{name:'Olio EVO', tag:'base'},{name:'Mandorle/arachidi 200g', tag:'scorta'},
-    {name:'Avocado 2pz', tag:'stagionale'}
+// ─── RECIPES DATABASE ───────────────────────────────────────────────────────
+const RECIPES = [
+// ── COLAZIONE ──
+{
+  id:'c1', name:'Porridge proteico con banana', category:'colazione', emoji:'🥣',
+  prepTime:5, cookTime:10, calories:420, macros:{protein:28,carbs:55,fat:9},
+  difficulty:'facile', servings:1, tags:['proteico','vegetariano','energy boost'],
+  ingredients:[
+    {name:'Fiocchi d\'avena',amount:80,unit:'g'},
+    {name:'Latte parzialmente scremato',amount:250,unit:'ml'},
+    {name:'Banana',amount:1,unit:'pz'},
+    {name:'Burro di arachidi',amount:15,unit:'g'},
+    {name:'Miele',amount:10,unit:'g'},
+    {name:'Proteine whey alla vaniglia',amount:25,unit:'g'},
+    {name:'Cannella',amount:1,unit:'pizzico'}
   ],
-  autunno: [
-    {name:'Pollo 1kg', tag:'fresco'},{name:'Macinato tacchino 500g', tag:'fresco'},{name:'Salmone 400g', tag:'fresco'},
-    {name:'Bistecca manzo 400g', tag:'fresco'},{name:'Uova 12pz', tag:'fresco'},{name:'Yogurt greco 4x', tag:'fresco'},
-    {name:'Ricotta 250g', tag:'fresco'},{name:'Riso basmati 1kg', tag:'scorta'},{name:'Pasta integrale 1kg', tag:'scorta'},
-    {name:'Pane di segale', tag:'fresco'},{name:'Avena 500g', tag:'scorta'},{name:'Patate dolci 1kg', tag:'stagionale'},
-    {name:'Broccoli 500g', tag:'stagionale'},{name:'Spinaci 300g', tag:'fresco'},{name:'Funghi 250g', tag:'stagionale'},
-    {name:'Mele 6pz', tag:'stagionale'},{name:'Pere 4pz', tag:'stagionale'},{name:'Banane 6pz', tag:'fresco'},
-    {name:'Lenticchie 2 barattoli', tag:'scorta'},{name:'Ceci 2 barattoli', tag:'scorta'},{name:'Fagioli neri 1 barattolo', tag:'scorta'},
-    {name:'Olio EVO', tag:'base'},{name:'Noci/mandorle 300g', tag:'scorta'},{name:'Burro arachidi', tag:'scorta'}
+  steps:[
+    'Versa i fiocchi d\'avena in un pentolino e aggiungi il latte freddo.',
+    'Porta a fuoco medio-basso mescolando continuamente per 5-7 minuti finché il porridge si addensa.',
+    'Togli dal fuoco e lascia intiepidire 2 minuti. Aggiungi le proteine whey e mescola bene per evitare grumi.',
+    'Trasferisci in una ciotola. Affetta la banana a rondelle e distribuiscila sopra.',
+    'Aggiungi un cucchiaio di burro di arachidi al centro.',
+    'Irrora con il miele e spolvera con la cannella.',
+    'Consuma subito mentre è caldo.'
   ],
-  inverno: [
-    {name:'Pollo 1.5kg', tag:'fresco'},{name:'Bistecca manzo 600g', tag:'fresco'},{name:'Salmone 500g', tag:'fresco'},
-    {name:'Macinato manzo 500g', tag:'fresco'},{name:'Tacchino 400g', tag:'fresco'},{name:'Uova 18pz', tag:'fresco'},
-    {name:'Ricotta intera 500g', tag:'fresco'},{name:'Latte intero 1L', tag:'fresco'},{name:'Riso integrale 1kg', tag:'scorta'},
-    {name:'Pasta 1.5kg', tag:'scorta'},{name:'Pane integrale', tag:'fresco'},{name:'Avena 1kg', tag:'scorta'},
-    {name:'Patate 1.5kg', tag:'stagionale'},{name:'Patate dolci 1kg', tag:'stagionale'},{name:'Broccoli/cavolfiore 700g', tag:'stagionale'},
-    {name:'Spinaci surgelati 500g', tag:'scorta'},{name:'Verza/cavolo', tag:'stagionale'},{name:'Carote 500g', tag:'stagionale'},
-    {name:'Banane 8pz', tag:'fresco'},{name:'Mele/pere 6pz', tag:'stagionale'},{name:'Arance/kiwi 6pz', tag:'stagionale'},
-    {name:'Fagioli borlotti 2 bar', tag:'scorta'},{name:'Ceci 2 bar', tag:'scorta'},{name:'Lenticchie 2 bar', tag:'scorta'},
-    {name:'Olio EVO', tag:'base'},{name:'Noci/arachidi 400g', tag:'scorta'},{name:'Burro arachidi', tag:'scorta'},
-    {name:'Cioccolato fondente 80% 100g', tag:'scorta'},{name:'Miele', tag:'base'}
+  tips:'Per un porridge più cremoso usa latte intero. Puoi prepararlo la sera e conservarlo in frigo overnight.'
+},
+{
+  id:'c2', name:'Uova strapazzate con avocado', category:'colazione', emoji:'🥑',
+  prepTime:5, cookTime:8, calories:380, macros:{protein:22,carbs:18,fat:24},
+  difficulty:'facile', servings:1, tags:['proteico','senza glutine','grassi buoni'],
+  ingredients:[
+    {name:'Uova grandi',amount:3,unit:'pz'},
+    {name:'Avocado maturo',amount:1,unit:'pz'},
+    {name:'Pane integrale',amount:1,unit:'fetta'},
+    {name:'Pomodorini',amount:5,unit:'pz'},
+    {name:'Olio EVO',amount:5,unit:'ml'},
+    {name:'Sale',amount:1,unit:'pizzico'},
+    {name:'Pepe nero',amount:1,unit:'pizzico'},
+    {name:'Erba cipollina',amount:1,unit:'rametto'}
   ],
-  primavera: [
-    {name:'Pollo 1kg', tag:'fresco'},{name:'Tacchino 500g', tag:'fresco'},{name:'Merluzzo 400g', tag:'fresco'},
-    {name:'Tonno 6 scatolette', tag:'scorta'},{name:'Gamberi surgelati 300g', tag:'scorta'},{name:'Uova 12pz', tag:'fresco'},
-    {name:'Yogurt greco 0% 4x', tag:'fresco'},{name:'Fiocchi di latte 250g', tag:'fresco'},{name:'Ricotta magra 250g', tag:'fresco'},
-    {name:'Riso basmati 1kg', tag:'scorta'},{name:'Pasta integrale 500g', tag:'scorta'},{name:'Pane integrale', tag:'fresco'},
-    {name:'Avena 500g', tag:'scorta'},{name:'Asparagi 500g', tag:'stagionale'},{name:'Spinaci freschi 300g', tag:'stagionale'},
-    {name:'Zucchine 4pz', tag:'stagionale'},{name:'Radicchio/lattuga', tag:'stagionale'},{name:'Fragole 500g', tag:'stagionale'},
-    {name:'Kiwi 6pz', tag:'stagionale'},{name:'Banane 6pz', tag:'fresco'},{name:'Mirtilli 300g', tag:'stagionale'},
-    {name:'Ceci 2 bar', tag:'scorta'},{name:'Olio EVO', tag:'base'},{name:'Mandorle 200g', tag:'scorta'},
-    {name:'Latte di mandorla 1L', tag:'scorta'}
-  ]
+  steps:[
+    'Sbatti le uova in una ciotola con un pizzico di sale e pepe fino a ottenere un composto omogeneo.',
+    'Tosta il pane integrale nel tostapane per 2-3 minuti.',
+    'Scalda l\'olio EVO in una padella antiaderente a fuoco basso.',
+    'Versa le uova nella padella e mescola lentamente con una spatola di silicone, muovendo dal bordo verso il centro.',
+    'Togli dal fuoco quando le uova sono ancora leggermente umide — continuano a cuocere con il calore residuo.',
+    'Taglia l\'avocado a metà, rimuovi il nocciolo e schiaccia la polpa con una forchetta. Aggiungi succo di limone, sale e pepe.',
+    'Spalma l\'avocado sul pane tostato, adagia le uova strapazzate sopra.',
+    'Aggiungi i pomodorini tagliati a metà e l\'erba cipollina tritata.'
+  ],
+  tips:'Il segreto delle uova strapazzate cremose è il fuoco basso e non smettere mai di mescolare.'
+},
+{
+  id:'c3', name:'Yogurt greco con frutti di bosco', category:'colazione', emoji:'🍓',
+  prepTime:5, cookTime:0, calories:310, macros:{protein:20,carbs:38,fat:7},
+  difficulty:'facile', servings:1, tags:['proteico','veloce','vegetariano','antiossidante'],
+  ingredients:[
+    {name:'Yogurt greco 0% grassi',amount:200,unit:'g'},
+    {name:'Frutti di bosco misti (surgelati o freschi)',amount:100,unit:'g'},
+    {name:'Granola artigianale',amount:30,unit:'g'},
+    {name:'Miele di acacia',amount:10,unit:'g'},
+    {name:'Semi di chia',amount:5,unit:'g'}
+  ],
+  steps:[
+    'Se usi frutti di bosco surgelati, scongelali in frigo la sera prima oppure a temperatura ambiente per 10 minuti.',
+    'Versa lo yogurt greco in una ciotola capiente.',
+    'Aggiungi i semi di chia e mescola delicatamente.',
+    'Distribuisci i frutti di bosco sopra lo yogurt.',
+    'Aggiungi la granola per dare croccantezza.',
+    'Irrora con il miele.',
+    'Consuma subito per mantenere la croccantezza della granola.'
+  ],
+  tips:'Puoi preparare la base yogurt+chia la sera prima. Aggiungi granola e frutta solo al momento di servire.'
+},
+{
+  id:'c4', name:'Pancakes proteici', category:'colazione', emoji:'🥞',
+  prepTime:10, cookTime:15, calories:450, macros:{protein:30,carbs:52,fat:10},
+  difficulty:'medio', servings:2, tags:['proteico','vegetariano','meal prep'],
+  ingredients:[
+    {name:'Fiocchi d\'avena macinati (farina d\'avena)',amount:100,unit:'g'},
+    {name:'Uova',amount:2,unit:'pz'},
+    {name:'Banana matura',amount:1,unit:'pz'},
+    {name:'Latte parzialmente scremato',amount:80,unit:'ml'},
+    {name:'Lievito per dolci',amount:4,unit:'g'},
+    {name:'Cannella in polvere',amount:1,unit:'cucchiaino'},
+    {name:'Olio di cocco',amount:5,unit:'g'}
+  ],
+  steps:[
+    'Schiaccia la banana con una forchetta in una ciotola capiente fino a ottenere una purea liscia.',
+    'Aggiungi le uova alla banana e sbatti con una forchetta o frusta fino a incorporarle bene.',
+    'Aggiungi la farina d\'avena, il lievito e la cannella. Mescola.',
+    'Versa il latte a filo mescolando finché l\'impasto è omogeneo e senza grumi. Lascia riposare 3 minuti.',
+    'Scalda una padella antiaderente a fuoco medio e ungi con una piccola quantità di olio di cocco.',
+    'Versa circa 2-3 cucchiai di impasto per ogni pancake. Cuoci 2-3 minuti per lato finché compaiono le bollicine in superficie.',
+    'Gira delicatamente e cuoci altri 1-2 minuti.',
+    'Servi con frutta fresca, miele o yogurt greco.'
+  ],
+  tips:'L\'impasto non deve essere troppo liquido. Se necessario aggiungi un cucchiaio di avena in più.'
+},
+{
+  id:'c5', name:'Frullato verde energizzante', category:'colazione', emoji:'🥤',
+  prepTime:5, cookTime:0, calories:290, macros:{protein:22,carbs:35,fat:7},
+  difficulty:'facile', servings:1, tags:['vegan','veloce','detox','energy boost'],
+  ingredients:[
+    {name:'Spinaci freschi',amount:50,unit:'g'},
+    {name:'Banana congelata',amount:1,unit:'pz'},
+    {name:'Latte di mandorla non zuccherato',amount:250,unit:'ml'},
+    {name:'Proteine in polvere (vaniglia)',amount:25,unit:'g'},
+    {name:'Semi di lino macinati',amount:10,unit:'g'},
+    {name:'Miele',amount:5,unit:'g'}
+  ],
+  steps:[
+    'Inserisci gli spinaci freschi nel frullatore per primi.',
+    'Aggiungi la banana congelata spezzata in 3-4 pezzi.',
+    'Versa il latte di mandorla.',
+    'Aggiungi le proteine in polvere e i semi di lino.',
+    'Frulla a velocità alta per 60 secondi fino a ottenere un composto liscio e cremoso.',
+    'Assaggia e aggiungi il miele se necessario.',
+    'Versa in un bicchiere alto e consuma subito.'
+  ],
+  tips:'Congela la banana a pezzi la sera prima per un frullato più cremoso senza aggiungere ghiaccio.'
+},
+
+// ── PRANZO ──
+{
+  id:'p1', name:'Pollo grigliato con riso basmati', category:'pranzo', emoji:'🍗',
+  prepTime:10, cookTime:25, calories:520, macros:{protein:42,carbs:58,fat:8},
+  difficulty:'facile', servings:1, tags:['proteico','senza glutine','meal prep'],
+  ingredients:[
+    {name:'Petto di pollo',amount:180,unit:'g'},
+    {name:'Riso basmati',amount:80,unit:'g'},
+    {name:'Broccoli',amount:150,unit:'g'},
+    {name:'Aglio',amount:2,unit:'spicchi'},
+    {name:'Limone',amount:1,unit:'pz'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Sale',amount:1,unit:'pizzico'},
+    {name:'Paprika dolce',amount:1,unit:'cucchiaino'},
+    {name:'Origano',amount:1,unit:'pizzico'}
+  ],
+  steps:[
+    'Sciacqua il riso basmati sotto acqua fredda finché l\'acqua non è limpida, poi cuocilo in acqua bollente salata per 11 minuti.',
+    'Mentre il riso cuoce, batti il petto di pollo con un batticarne per uniformare lo spessore.',
+    'Condisci il pollo con olio EVO, paprika, sale, origano e succo di mezzo limone. Lascia marinare 5 minuti.',
+    'Scalda una griglia o padella ghisa a fuoco alto. Cuoci il pollo 4-5 minuti per lato finché è dorato e cotto al centro.',
+    'Cuoci i broccoli divisi in cimette in acqua bollente salata per 5 minuti o al vapore per 8 minuti.',
+    'Scalda l\'olio in una padella, aggiungi l\'aglio schiacciato e soffriggi 30 secondi, poi aggiungi i broccoli saltando 2 minuti.',
+    'Scola il riso e sgranalo con una forchetta.',
+    'Componi il piatto con il riso alla base, il pollo tagliato a fette e i broccoli all\'aglio. Spremi il limone rimanente.'
+  ],
+  tips:'Prepara il doppio e conserva in frigo fino a 3 giorni per il meal prep settimanale.'
+},
+{
+  id:'p2', name:'Pasta integrale al tonno', category:'pranzo', emoji:'🍝',
+  prepTime:5, cookTime:12, calories:480, macros:{protein:34,carbs:62,fat:10},
+  difficulty:'facile', servings:1, tags:['veloce','proteico','omega3'],
+  ingredients:[
+    {name:'Pasta integrale (fusilli o penne)',amount:90,unit:'g'},
+    {name:'Tonno in acqua',amount:140,unit:'g'},
+    {name:'Pomodorini',amount:120,unit:'g'},
+    {name:'Olive nere denocciolate',amount:20,unit:'g'},
+    {name:'Capperi sotto sale',amount:10,unit:'g'},
+    {name:'Aglio',amount:1,unit:'spicchio'},
+    {name:'Basilico fresco',amount:5,unit:'foglie'},
+    {name:'Olio EVO',amount:10,unit:'ml'}
+  ],
+  steps:[
+    'Porta a ebollizione abbondante acqua salata e cuoci la pasta seguendo i tempi al dente indicati sulla confezione.',
+    'Sciacqua i capperi sotto acqua corrente per togliere l\'eccesso di sale.',
+    'In una padella ampia scalda l\'olio EVO a fuoco medio e aggiungi l\'aglio schiacciato.',
+    'Dopo 30 secondi aggiungi i pomodorini tagliati a metà. Cuoci 4-5 minuti finché si ammorbidiscono.',
+    'Aggiungi le olive tagliate a rondelle e i capperi. Mescola.',
+    'Scola il tonno dal liquido di conserva e aggiungilo alla padella. Sgranalo con una forchetta e mescola delicatamente.',
+    'Scola la pasta al dente, tenendo 2 cucchiai di acqua di cottura. Salta la pasta nella padella a fuoco vivace 1 minuto.',
+    'Aggiungi l\'acqua di cottura se necessario per mantecare. Spegni il fuoco, aggiungi il basilico spezzettato e servi.'
+  ],
+  tips:'Non scaldare il tonno troppo a lungo — si asciugherà. Aggiungilo quasi a fine cottura.'
+},
+{
+  id:'p3', name:'Bowl di quinoa con verdure', category:'pranzo', emoji:'🥗',
+  prepTime:10, cookTime:15, calories:440, macros:{protein:18,carbs:52,fat:16},
+  difficulty:'facile', servings:1, tags:['vegetariano','senza glutine','proteico'],
+  ingredients:[
+    {name:'Quinoa',amount:80,unit:'g'},
+    {name:'Ceci in scatola',amount:100,unit:'g'},
+    {name:'Peperone rosso',amount:80,unit:'g'},
+    {name:'Cetriolo',amount:80,unit:'g'},
+    {name:'Pomodori ciliegino',amount:80,unit:'g'},
+    {name:'Feta',amount:40,unit:'g'},
+    {name:'Limone',amount:1,unit:'pz'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Prezzemolo fresco',amount:5,unit:'g'}
+  ],
+  steps:[
+    'Sciacqua la quinoa sotto acqua fredda usando un colino a maglie fini per almeno 1 minuto.',
+    'Cuoci la quinoa in 160 ml di acqua salata a fuoco medio-basso per 12-15 minuti, finché l\'acqua è assorbita e compare il germe bianco.',
+    'Sgrana la quinoa con una forchetta e lascia raffreddare 5 minuti.',
+    'Scola e sciacqua i ceci in scatola. Se vuoi, tostali in padella con un filo d\'olio e paprika per 3-4 minuti.',
+    'Taglia il peperone a dadini, il cetriolo a mezze rondelle e i pomodorini a metà.',
+    'Prepara il condimento: mescola il succo di limone con l\'olio EVO, sale e pepe.',
+    'Componi la bowl: quinoa alla base, poi le verdure disposte a gruppi, i ceci e la feta sbriciolata.',
+    'Condisci con il dressing al limone e cospargi il prezzemolo tritato.'
+  ],
+  tips:'La bowl si conserva in frigo 2 giorni senza il condimento. Aggiungi il dressing solo prima di mangiare.'
+},
+{
+  id:'p4', name:'Piadina proteica', category:'pranzo', emoji:'🫓',
+  prepTime:5, cookTime:5, calories:410, macros:{protein:36,carbs:38,fat:12},
+  difficulty:'facile', servings:1, tags:['veloce','proteico','meal prep'],
+  ingredients:[
+    {name:'Piadina integrale grande',amount:1,unit:'pz'},
+    {name:'Fesa di tacchino',amount:100,unit:'g'},
+    {name:'Ricotta light',amount:60,unit:'g'},
+    {name:'Rucola fresca',amount:30,unit:'g'},
+    {name:'Pomodori',amount:1,unit:'pz'},
+    {name:'Sale',amount:1,unit:'pizzico'},
+    {name:'Pepe',amount:1,unit:'pizzico'},
+    {name:'Succo di limone',amount:5,unit:'ml'}
+  ],
+  steps:[
+    'Scalda la piadina su una piastra o in padella antiaderente asciutta a fuoco medio per 1 minuto per lato.',
+    'Nel frattempo, condisci la ricotta con sale, pepe e un goccio di succo di limone.',
+    'Taglia i pomodori a fette sottili.',
+    'Spalma la ricotta su tutta la superficie della piadina calda.',
+    'Disponi le fette di tacchino coprendo la ricotta.',
+    'Aggiungi le fette di pomodoro.',
+    'Distribuisci la rucola fresca.',
+    'Piega la piadina a metà o arrotolala e servila subito.'
+  ],
+  tips:'Puoi sostituire il tacchino con salmone affumicato o tonno per variare i sapori mantenendo le proteine.'
+},
+{
+  id:'p5', name:'Insalata di salmone e avocado', category:'pranzo', emoji:'🥗',
+  prepTime:10, cookTime:0, calories:460, macros:{protein:28,carbs:12,fat:32},
+  difficulty:'facile', servings:1, tags:['senza glutine','omega3','grassi buoni','veloce'],
+  ingredients:[
+    {name:'Salmone affumicato',amount:100,unit:'g'},
+    {name:'Lattuga mista',amount:80,unit:'g'},
+    {name:'Avocado',amount:1,unit:'pz'},
+    {name:'Cetriolo',amount:80,unit:'g'},
+    {name:'Mais in scatola',amount:50,unit:'g'},
+    {name:'Aceto balsamico',amount:10,unit:'ml'},
+    {name:'Olio EVO',amount:8,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Lava e asciuga la lattuga, poi spezzala a mano in pezzi di dimensioni uniformi.',
+    'Taglia il cetriolo a rondelle o a dadini. Scola il mais.',
+    'Taglia l\'avocado a metà, rimuovi il nocciolo e tagliane la polpa a cubetti. Irrora subito con un goccio di succo di limone per non annerire.',
+    'Prepara il dressing: emulsiona l\'olio EVO con l\'aceto balsamico, sale e pepe.',
+    'In una ciotola ampia unisci lattuga, cetriolo e mais.',
+    'Adagia le fette di salmone affumicato sopra.',
+    'Aggiungi i cubetti di avocado.',
+    'Condisci con il dressing al momento di servire.'
+  ],
+  tips:'Per un piatto più ricco aggiungi uova sode a fette o una manciata di noci.'
+},
+{
+  id:'p6', name:'Riso venere con gamberetti', category:'pranzo', emoji:'🍤',
+  prepTime:10, cookTime:40, calories:430, macros:{protein:30,carbs:55,fat:8},
+  difficulty:'medio', servings:1, tags:['senza glutine','proteico','antiossidante'],
+  ingredients:[
+    {name:'Riso venere',amount:70,unit:'g'},
+    {name:'Gamberetti surgelati',amount:150,unit:'g'},
+    {name:'Zucchine',amount:100,unit:'g'},
+    {name:'Aglio',amount:2,unit:'spicchi'},
+    {name:'Limone',amount:1,unit:'pz'},
+    {name:'Prezzemolo fresco',amount:10,unit:'g'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Cuoci il riso venere in abbondante acqua salata per 35-40 minuti (controlla la confezione). Scola e tieni da parte.',
+    'Scongela i gamberetti in acqua fredda per 10 minuti, poi asciugali bene con carta da cucina.',
+    'Taglia le zucchine a cubetti da 1 cm.',
+    'In una padella ampia scalda l\'olio EVO con l\'aglio schiacciato. Rosola 1 minuto.',
+    'Aggiungi le zucchine e salta a fuoco medio-alto per 5-6 minuti finché sono dorate.',
+    'Aggiungi i gamberetti e cuoci 3-4 minuti girando a metà cottura.',
+    'Unisci il riso venere scolato alla padella, mescola tutto bene e scalda 1-2 minuti.',
+    'Spegni il fuoco. Aggiungi succo di limone, prezzemolo tritato, aggiusta di sale e pepe.'
+  ],
+  tips:'Il riso venere richiede più cottura del riso bianco. Puoi prepararlo in anticipo e conservarlo in frigo.'
+},
+{
+  id:'p7', name:'Zuppa di lenticchie rosse', category:'pranzo', emoji:'🍲',
+  prepTime:10, cookTime:30, calories:380, macros:{protein:20,carbs:56,fat:7},
+  difficulty:'facile', servings:2, tags:['vegan','senza glutine','proteico','fibre'],
+  ingredients:[
+    {name:'Lenticchie rosse decorticate',amount:150,unit:'g'},
+    {name:'Carote',amount:2,unit:'pz'},
+    {name:'Sedano',amount:2,unit:'coste'},
+    {name:'Cipolla',amount:1,unit:'pz'},
+    {name:'Pomodori pelati',amount:200,unit:'g'},
+    {name:'Curcuma',amount:1,unit:'cucchiaino'},
+    {name:'Cumino',amount:1,unit:'pizzico'},
+    {name:'Brodo vegetale',amount:800,unit:'ml'},
+    {name:'Olio EVO',amount:15,unit:'ml'}
+  ],
+  steps:[
+    'Trita finemente cipolla, carote e sedano (soffritto). Scalda l\'olio in una pentola capiente.',
+    'Aggiungi il soffritto e cuoci a fuoco medio per 5-6 minuti mescolando fino a doratura.',
+    'Aggiungi la curcuma e il cumino. Tosta le spezie 1 minuto mescolando continuamente.',
+    'Aggiungi i pomodori pelati schiacciati con le mani e cuoci 3 minuti.',
+    'Sciacqua le lenticchie rosse sotto acqua fredda.',
+    'Aggiungi le lenticchie e il brodo caldo. Porta a ebollizione.',
+    'Abbassa il fuoco e cuoci a fuoco dolce per 20-25 minuti, finché le lenticchie sono morbide.',
+    'Frulla parzialmente con un frullatore a immersione per una consistenza cremosa ma non completamente liscia. Aggiusta di sale e pepe.'
+  ],
+  tips:'Aggiungi succo di limone a fine cottura per bilanciare i sapori. Si conserva in frigo 4 giorni.'
+},
+
+// ── CENA ──
+{
+  id:'e1', name:'Salmone al forno con patate', category:'cena', emoji:'🐟',
+  prepTime:10, cookTime:25, calories:490, macros:{protein:36,carbs:38,fat:18},
+  difficulty:'facile', servings:1, tags:['senza glutine','omega3','proteico'],
+  ingredients:[
+    {name:'Filetto di salmone',amount:180,unit:'g'},
+    {name:'Patate medie',amount:200,unit:'g'},
+    {name:'Limone',amount:1,unit:'pz'},
+    {name:'Rosmarino fresco',amount:2,unit:'rametti'},
+    {name:'Timo',amount:2,unit:'rametti'},
+    {name:'Aglio',amount:2,unit:'spicchi'},
+    {name:'Olio EVO',amount:15,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Preriscalda il forno a 200°C in modalità statica.',
+    'Taglia le patate a spicchi sottili (circa 1 cm). Condiscile con olio EVO, sale, rosmarino e aglio schiacciato.',
+    'Disponi le patate su una teglia rivestita di carta da forno e inforna per 15 minuti.',
+    'Nel frattempo, tampona il filetto di salmone con carta da cucina. Condiscilo con olio EVO, succo di limone, sale e pepe.',
+    'Togli la teglia dal forno, aggiungi il salmone tra le patate.',
+    'Aggiungi fette di limone sul salmone e il timo fresco.',
+    'Inforna di nuovo per 12-15 minuti finché il salmone è opaco al centro e si sfoglia facilmente.',
+    'Servi subito con una spruzzata di limone fresco.'
+  ],
+  tips:'Non cuocere troppo il salmone: è pronto quando è appena opaco al centro, ancora leggermente rosato.'
+},
+{
+  id:'e2', name:'Pollo al forno con verdure', category:'cena', emoji:'🍗',
+  prepTime:15, cookTime:35, calories:420, macros:{protein:40,carbs:22,fat:14},
+  difficulty:'facile', servings:2, tags:['senza glutine','proteico','meal prep'],
+  ingredients:[
+    {name:'Cosce di pollo',amount:400,unit:'g'},
+    {name:'Zucchine',amount:150,unit:'g'},
+    {name:'Peperoni misti',amount:150,unit:'g'},
+    {name:'Cipolla rossa',amount:1,unit:'pz'},
+    {name:'Pomodori ramati',amount:2,unit:'pz'},
+    {name:'Paprika affumicata',amount:1,unit:'cucchiaino'},
+    {name:'Origano',amount:1,unit:'cucchiaino'},
+    {name:'Olio EVO',amount:20,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Preriscalda il forno a 190°C con ventilazione.',
+    'Taglia tutte le verdure a pezzi uniformi di circa 3 cm.',
+    'In una ciotola grande mescola le verdure con metà olio EVO, sale, pepe e origano.',
+    'Massaggia il pollo con il resto dell\'olio EVO, paprika affumicata, sale e pepe.',
+    'In una teglia larga, disponi le verdure formando uno strato unico.',
+    'Appoggia i pezzi di pollo sopra le verdure, pelle verso l\'alto.',
+    'Cuoci in forno per 35-40 minuti, girando le verdure a metà cottura.',
+    'Gli ultimi 5 minuti attiva il grill per dorare la pelle del pollo. Controlla che il succo del pollo sia trasparente prima di servire.'
+  ],
+  tips:'Usa una teglia sufficientemente grande per non sovrapporre le verdure, così si arrostiscono invece di stufare.'
+},
+{
+  id:'e3', name:'Frittata di verdure', category:'cena', emoji:'🍳',
+  prepTime:10, cookTime:15, calories:340, macros:{protein:24,carbs:12,fat:22},
+  difficulty:'facile', servings:2, tags:['vegetariano','senza glutine','veloce'],
+  ingredients:[
+    {name:'Uova grandi',amount:5,unit:'pz'},
+    {name:'Zucchine',amount:120,unit:'g'},
+    {name:'Peperone giallo',amount:80,unit:'g'},
+    {name:'Cipolla',amount:80,unit:'g'},
+    {name:'Parmigiano grattugiato',amount:25,unit:'g'},
+    {name:'Basilico fresco',amount:5,unit:'foglie'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Taglia le zucchine a rondelle, il peperone a dadini e la cipolla a mezzaluna.',
+    'Scalda l\'olio in una padella antiaderente da 24 cm a fuoco medio. Aggiungi la cipolla e soffriggi 3 minuti.',
+    'Aggiungi le zucchine e il peperone. Cuoci a fuoco medio per 6-7 minuti mescolando, finché le verdure sono tenere.',
+    'In una ciotola sbatti le uova con il parmigiano, il basilico spezzettato, sale e pepe.',
+    'Versa il composto di uova sulle verdure nella padella. Inclina la padella per distribuire uniformemente.',
+    'Cuoci a fuoco basso per 5-6 minuti finché i bordi sono cotti e il centro è ancora leggermente tremolante.',
+    'Copri con un coperchio o piatto piano e gira la frittata scivolando su un piatto, poi falla rientrare in padella.',
+    'Cuoci altri 2-3 minuti. La frittata è pronta quando è dorata su entrambi i lati.'
+  ],
+  tips:'Per una frittata più morbida non cuocerla troppo. Leggermente umida al centro è perfetta.'
+},
+{
+  id:'e4', name:'Bistecca con insalata di rucola', category:'cena', emoji:'🥩',
+  prepTime:5, cookTime:10, calories:440, macros:{protein:44,carbs:4,fat:26},
+  difficulty:'facile', servings:1, tags:['senza glutine','proteico','keto'],
+  ingredients:[
+    {name:'Bistecca di manzo (controfiletto)',amount:200,unit:'g'},
+    {name:'Rucola fresca',amount:60,unit:'g'},
+    {name:'Grana Padano a scaglie',amount:20,unit:'g'},
+    {name:'Limone',amount:1,unit:'pz'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Sale grosso',amount:1,unit:'pizzico'},
+    {name:'Pepe nero macinato fresco',amount:1,unit:'pizzico'}
+  ],
+  steps:[
+    'Tira fuori la bistecca dal frigo 20 minuti prima di cuocerla per portarla a temperatura ambiente.',
+    'Scalda una padella ghisa o griglia a fuoco molto alto finché è quasi fumante.',
+    'Asciuga la bistecca con carta da cucina. Non salare prima della cottura.',
+    'Posa la bistecca sulla padella caldissima senza muoverla. Per media cottura: 3 minuti per lato.',
+    'Togli la bistecca dal fuoco e lasciala riposare su un tagliere per 3-4 minuti coperta con alluminio.',
+    'Sala con sale grosso solo dopo il riposo.',
+    'Lava e asciuga la rucola. Condiscila con olio EVO, succo di limone, sale e pepe.',
+    'Servi la bistecca tagliata a fette sopra il letto di rucola con le scaglie di grana e una spruzzata di limone.'
+  ],
+  tips:'Il riposo è fondamentale: redistribuisce i succhi nella carne per una bistecca succosa e tenera.'
+},
+{
+  id:'e5', name:'Merluzzo al vapore con broccoli', category:'cena', emoji:'🐠',
+  prepTime:10, cookTime:20, calories:320, macros:{protein:38,carbs:22,fat:8},
+  difficulty:'facile', servings:1, tags:['senza glutine','leggero','proteico'],
+  ingredients:[
+    {name:'Filetto di merluzzo',amount:200,unit:'g'},
+    {name:'Broccoli',amount:200,unit:'g'},
+    {name:'Patate medie',amount:150,unit:'g'},
+    {name:'Limone',amount:1,unit:'pz'},
+    {name:'Prezzemolo fresco',amount:10,unit:'g'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Pela le patate e tagliale a cubi da 2 cm. Dividi i broccoli in cimette.',
+    'Porta a ebollizione abbondante acqua in una pentola con cestello per la cottura al vapore.',
+    'Inizia con le patate nel cestello vapore — cuociono in 15-18 minuti.',
+    'Dopo 8 minuti aggiungi i broccoli nel cestello.',
+    'Condisci il merluzzo con succo di limone, sale, pepe e prezzemolo tritato.',
+    'Dopo 5 minuti di cottura delle patate e broccoli, aggiungi il filetto di merluzzo sopra le verdure.',
+    'Cuoci il pesce al vapore per 8-10 minuti finché è opaco e si sfoglia con una forchetta.',
+    'Disponi tutto nel piatto, condisci con un filo d\'olio EVO a crudo, prezzemolo fresco e succo di limone.'
+  ],
+  tips:'Il merluzzo al vapore è ottimo anche con olio di oliva aromatizzato all\'aglio preparato separatamente.'
+},
+{
+  id:'e6', name:'Tacchino in padella con funghi', category:'cena', emoji:'🍄',
+  prepTime:10, cookTime:20, calories:380, macros:{protein:42,carbs:8,fat:14},
+  difficulty:'medio', servings:1, tags:['senza glutine','proteico','veloce'],
+  ingredients:[
+    {name:'Petto di tacchino a fette',amount:180,unit:'g'},
+    {name:'Funghi champignon',amount:150,unit:'g'},
+    {name:'Aglio',amount:2,unit:'spicchi'},
+    {name:'Vino bianco secco',amount:60,unit:'ml'},
+    {name:'Prezzemolo fresco',amount:10,unit:'g'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'},
+    {name:'Timo',amount:2,unit:'rametti'}
+  ],
+  steps:[
+    'Pulisci i funghi con un panno umido e affettali a lamelle non troppo sottili.',
+    'Batti leggermente le fette di tacchino con un batticarne. Sala e pepa entrambi i lati.',
+    'Scalda l\'olio in una padella ampia a fuoco alto. Cuoci il tacchino 2-3 minuti per lato finché è dorato. Tieni da parte.',
+    'Nella stessa padella aggiungi l\'aglio schiacciato e i funghi. Cuoci a fuoco medio-alto senza mescolare per 3-4 minuti per farli dorare.',
+    'Mescola i funghi, aggiungi il timo e cuoci altri 2 minuti.',
+    'Sfuma con il vino bianco a fuoco alto. Lascia evaporare l\'alcol per 1-2 minuti.',
+    'Rimetti il tacchino in padella, riduci il fuoco e cuoci 3-4 minuti in modo che assorba i sapori.',
+    'Cospargi con il prezzemolo tritato fresco e servi.'
+  ],
+  tips:'Per una salsa più densa aggiungi un cucchiaino di farina o amido di mais diluito dopo il vino.'
+},
+{
+  id:'e7', name:'Burger di ceci', category:'cena', emoji:'🍔',
+  prepTime:15, cookTime:15, calories:390, macros:{protein:18,carbs:52,fat:12},
+  difficulty:'medio', servings:2, tags:['vegetariano','proteico','fibre'],
+  ingredients:[
+    {name:'Ceci in scatola scolati',amount:240,unit:'g'},
+    {name:'Cipolla',amount:80,unit:'g'},
+    {name:'Aglio',amount:1,unit:'spicchio'},
+    {name:'Paprika affumicata',amount:1,unit:'cucchiaino'},
+    {name:'Uovo',amount:1,unit:'pz'},
+    {name:'Pan grattato integrale',amount:30,unit:'g'},
+    {name:'Lattuga',amount:2,unit:'foglie'},
+    {name:'Pomodoro',amount:1,unit:'pz'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Sale e pepe',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Scola bene i ceci e asciugali con carta da cucina.',
+    'Trita finemente la cipolla e l\'aglio. Soffriggi brevemente in un cucchiaino d\'olio per 2 minuti.',
+    'Frulla i ceci con il mixer a immersione grossolanamente — non devono diventare una pasta liscia, qualche pezzo è ideale.',
+    'In una ciotola mescola i ceci frullati, cipolla e aglio soffritti, paprika, uovo, pan grattato, sale e pepe.',
+    'Forma 2 polpette piatte (burger) e mettile in frigo per 15 minuti per farle compattare.',
+    'Scalda un filo d\'olio in padella antiaderente a fuoco medio.',
+    'Cuoci i burger 4-5 minuti per lato finché sono dorati e croccanti. Girateli con una spatola larga con cura.',
+    'Servi su insalata di lattuga con fette di pomodoro, senape o salsa yogurt.'
+  ],
+  tips:'Più asciutti sono i ceci, migliore sarà la consistenza del burger. Togliere tutta l\'umidità è fondamentale.'
+},
+
+// ── SNACK ──
+{
+  id:'s1', name:'Barretta energetica fai da te', category:'snack', emoji:'🍫',
+  prepTime:15, cookTime:0, calories:280, macros:{protein:10,carbs:28,fat:14},
+  difficulty:'facile', servings:4, tags:['vegetariano','meal prep','energy boost'],
+  ingredients:[
+    {name:'Fiocchi d\'avena',amount:150,unit:'g'},
+    {name:'Miele',amount:60,unit:'g'},
+    {name:'Burro di arachidi',amount:80,unit:'g'},
+    {name:'Cioccolato fondente 70%',amount:40,unit:'g'},
+    {name:'Mandorle tritate',amount:40,unit:'g'},
+    {name:'Sale',amount:1,unit:'pizzico'}
+  ],
+  steps:[
+    'Rivesti uno stampo rettangolare (20x10 cm) con carta da forno.',
+    'Scalda il miele e il burro di arachidi insieme a microonde per 30 secondi e mescola fino a ottenere un composto fluido.',
+    'In una ciotola mescola i fiocchi d\'avena, le mandorle e il sale.',
+    'Versa il composto caldo sui fiocchi e mescola bene finché tutto è coperto.',
+    'Premi il composto nello stampo con il dorso di un cucchiaio bagnato, formando uno strato compatto e uniforme.',
+    'Scioglie il cioccolato fondente a bagnomaria o al microonde a intervalli di 20 secondi.',
+    'Versa il cioccolato fuso sulla superficie. Distribuisci uniformemente.',
+    'Metti in frigo per almeno 2 ore. Poi taglia in 4-8 barrette con un coltello affilato.'
+  ],
+  tips:'Conserva le barrette in frigo fino a 1 settimana o in freezer fino a 1 mese.'
+},
+{
+  id:'s2', name:'Hummus con crudités', category:'snack', emoji:'🥕',
+  prepTime:10, cookTime:0, calories:220, macros:{protein:10,carbs:24,fat:10},
+  difficulty:'facile', servings:2, tags:['vegan','senza glutine','proteico','veloce'],
+  ingredients:[
+    {name:'Ceci in scatola scolati',amount:200,unit:'g'},
+    {name:'Tahini (pasta di sesamo)',amount:30,unit:'g'},
+    {name:'Succo di limone',amount:30,unit:'ml'},
+    {name:'Aglio',amount:1,unit:'spicchio'},
+    {name:'Carote',amount:2,unit:'pz'},
+    {name:'Sedano',amount:2,unit:'coste'},
+    {name:'Cetriolo',amount:1,unit:'pz'},
+    {name:'Olio EVO',amount:10,unit:'ml'},
+    {name:'Paprika',amount:1,unit:'pizzico'},
+    {name:'Sale',amount:1,unit:'qb'}
+  ],
+  steps:[
+    'Scola i ceci e tienine da parte qualcuno per la decorazione.',
+    'Nel mixer metti i ceci, il tahini, il succo di limone, l\'aglio, il sale e 2 cucchiai di acqua fredda.',
+    'Frulla ad alta velocità per 2-3 minuti finché l\'hummus è liscio e cremoso. Aggiungi acqua un cucchiaio alla volta se necessario.',
+    'Assaggia e regola di sale o limone.',
+    'Trasferisci in una ciotola. Crea un piccolo avvallamento al centro con il dorso di un cucchiaio.',
+    'Condisci con olio EVO, paprika e i ceci tenuti da parte.',
+    'Taglia carote, sedano e cetriolo a bastoncini per i crudités.',
+    'Servi l\'hummus con i bastoncini di verdura.'
+  ],
+  tips:'Il segreto di un hummus cremoso è frullare a lungo e usare acqua ghiacciata.'
+},
+{
+  id:'s3', name:'Uova sode con sale e pepe', category:'snack', emoji:'🥚',
+  prepTime:2, cookTime:10, calories:155, macros:{protein:13,carbs:1,fat:11},
+  difficulty:'facile', servings:2, tags:['senza glutine','proteico','veloce','keto'],
+  ingredients:[
+    {name:'Uova',amount:2,unit:'pz'},
+    {name:'Sale',amount:1,unit:'pizzico'},
+    {name:'Pepe nero',amount:1,unit:'pizzico'}
+  ],
+  steps:[
+    'Porta a ebollizione abbondante acqua in un pentolino.',
+    'Con un cucchiaio abbassa delicatamente le uova nell\'acqua bollente.',
+    'Per uova sode con tuorlo completamente cotto: cuoci esattamente 10 minuti dall\'ebollizione.',
+    'Togli le uova con un cucchiaio e immergile immediatamente in una ciotola con acqua fredda e ghiaccio per 5 minuti.',
+    'Questo blocca la cottura e rende il guscio più facile da togliere.',
+    'Pela le uova iniziando dalla parte più tonda dove c\'è la camera d\'aria.',
+    'Taglia a metà o servi intere con sale e pepe.'
+  ],
+  tips:'Le uova sode si conservano in frigo con il guscio fino a 1 settimana. Ottime per il meal prep.'
+},
+{
+  id:'s4', name:'Frutta secca mista', category:'snack', emoji:'🥜',
+  prepTime:2, cookTime:0, calories:200, macros:{protein:6,carbs:8,fat:17},
+  difficulty:'facile', servings:1, tags:['vegan','senza glutine','veloce','grassi buoni'],
+  ingredients:[
+    {name:'Mandorle',amount:15,unit:'g'},
+    {name:'Noci',amount:10,unit:'g'},
+    {name:'Anacardi',amount:10,unit:'g'},
+    {name:'Uvetta',amount:10,unit:'g'}
+  ],
+  steps:[
+    'Pesa la frutta secca con una bilancia — è facile superare le porzioni.',
+    'Mescola mandorle, noci, anacardi e uvetta in una piccola ciotola o contenitore.',
+    'Consuma lentamente masticando bene ogni pezzo.',
+    'Puoi preparare più porzioni in anticipo in piccoli contenitori per la settimana.'
+  ],
+  tips:'Preferisci frutta secca non salata e non tostata in olio per massimizzare i benefici nutrizionali.'
+},
+{
+  id:'s5', name:'Ricotta con miele e noci', category:'snack', emoji:'🍯',
+  prepTime:3, cookTime:0, calories:230, macros:{protein:14,carbs:18,fat:11},
+  difficulty:'facile', servings:1, tags:['vegetariano','senza glutine','veloce','proteico'],
+  ingredients:[
+    {name:'Ricotta vaccina',amount:150,unit:'g'},
+    {name:'Miele millefiori',amount:15,unit:'g'},
+    {name:'Noci',amount:20,unit:'g'},
+    {name:'Cannella',amount:1,unit:'pizzico'}
+  ],
+  steps:[
+    'Lavora la ricotta con una forchetta per renderla cremosa.',
+    'Trasferisci in una ciotolina.',
+    'Spezzetta le noci grossolanamente con le mani.',
+    'Distribuisci le noci sulla ricotta.',
+    'Irrora con il miele.',
+    'Spolvera con un pizzico di cannella.'
+  ],
+  tips:'Ottimo spuntino pomeridiano ad alto contenuto proteico. Puoi aggiungere frutta fresca di stagione.'
+},
+{
+  id:'s6', name:'Smoothie bowl alle fragole', category:'snack', emoji:'🍓',
+  prepTime:8, cookTime:0, calories:310, macros:{protein:14,carbs:48,fat:6},
+  difficulty:'facile', servings:1, tags:['vegetariano','veloce','antiossidante','vitamineC'],
+  ingredients:[
+    {name:'Fragole surgelate',amount:150,unit:'g'},
+    {name:'Banana congelata',amount:1,unit:'pz'},
+    {name:'Yogurt greco 0% grassi',amount:100,unit:'g'},
+    {name:'Granola',amount:25,unit:'g'},
+    {name:'Semi di chia',amount:5,unit:'g'},
+    {name:'Miele',amount:10,unit:'g'},
+    {name:'Fragole fresche per decorare',amount:3,unit:'pz'}
+  ],
+  steps:[
+    'Metti le fragole surgelate e la banana congelata nel frullatore.',
+    'Aggiungi lo yogurt greco.',
+    'Frulla alla massima potenza per 60 secondi. Il composto deve essere denso, quasi come un gelato — non aggiungere liquidi.',
+    'Se il frullatore fatica, aggiungi un cucchiaio di acqua fredda alla volta.',
+    'Versa la base nella ciotola inclinando e battendo leggermente sul tavolo per livellarla.',
+    'Aggiungi i topping: granola, semi di chia, fragole fresche tagliate a metà.',
+    'Irrora con il miele.',
+    'Consuma subito prima che si sciolga.'
+  ],
+  tips:'Il segreto della smoothie bowl è la consistenza densa. Usa frutta sempre congelata e yogurt greco non liquido.'
+}
+]; // END RECIPES
+
+
+// ─── APP STATE ───────────────────────────────────────────────────────────────
+const DAYS_IT = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+const SLOTS = ['colazione','pranzo','cena','snack'];
+const SLOT_LABELS = {colazione:'☀️ Colazione',pranzo:'🌤️ Pranzo',cena:'🌙 Cena',snack:'🍎 Snack'};
+const CAT_COLORS = {colazione:'var(--col-col)',pranzo:'var(--col-pra)',cena:'var(--col-cen)',snack:'var(--col-sna)'};
+
+let state = {
+  currentTab: 'piano',
+  recipeFilter: 'tutti',
+  recipeSearch: '',
+  activeDay: null,
+  activeTimers: {}
 };
 
-const PANTRY = [
-  {name:'Sale rosa', tag:'base'},{name:'Olio EVO', tag:'base'},{name:'Cacao amaro', tag:'base'},
-  {name:'Miele', tag:'base'},{name:'Cannella', tag:'base'},{name:'Aglio', tag:'base'},
-  {name:'Salsa pomodoro 2 bar', tag:'scorta'},{name:'Paprika', tag:'base'},{name:'Dado/brodo', tag:'base'},
-  {name:'Proteine Whey (opzionale)', tag:'scorta'}
-];
+function loadData(key, def) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; }
+}
+function saveData(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) { console.warn(e); }
+}
 
-// ===================== STATE =====================
-let currentDay = null;
-let currentScheda = 'A';
-let chronoInterval = null;
-let chronoStart = null;
-let chronoElapsed = 0;
-let restTimers = {};
-let currentSeason = 'estate';
-let currentSpesaSeason = 'estate';
-let workoutSessionNotes = {};
+function getPlan() { return loadData('dietPlan', {}); }
+function savePlan(p) { saveData('dietPlan', p); }
+function getFavorites() { return loadData('dietFavorites', []); }
+function saveFavorites(f) { saveData('dietFavorites', f); }
+function getGroceryChecked() { return loadData('groceryChecked', {}); }
+function saveGroceryChecked(c) { saveData('groceryChecked', c); }
+function getProfile() { return loadData('dietProfile', {name:'',age:30,weight:70,height:175,goal:'mantenimento',gluten:false,vegetarian:false,vegan:false,lactose:false}); }
+function saveProfile(p) { saveData('dietProfile', p); }
+function getTheme() { return loadData('dietTheme', 'dark'); }
+function saveTheme(t) { saveData('dietTheme', t); }
 
-// ===================== PIN =====================
+// ─── PIN ──────────────────────────────────────────────────────────────────────
 let pinEntry = '';
-const CORRECT_PIN_KEY = 'gymPin';
-function getPin() { return localStorage.getItem(CORRECT_PIN_KEY) || '0406'; }
-
-function pinPress(val) {
-  if (val === 'del') {
-    pinEntry = pinEntry.slice(0,-1);
-  } else if (val === 'ok') {
-    checkPin();
-    return;
-  } else {
-    if (pinEntry.length >= 4) return;
-    pinEntry += val;
-    if (pinEntry.length === 4) { setTimeout(checkPin, 120); }
+function setupPin() {
+  const stored = localStorage.getItem('dietPin') || '0406';
+  const dotsEl = document.getElementById('pin-dots');
+  const gridEl = document.getElementById('pin-grid');
+  dotsEl.innerHTML = '';
+  for (let i=0;i<4;i++) {
+    const d = document.createElement('div');
+    d.style.cssText='width:16px;height:16px;border-radius:50%;border:2px solid var(--primary);transition:background .2s;';
+    d.id='dot'+i;
+    dotsEl.appendChild(d);
   }
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  keys.forEach(k => {
+    const btn = document.createElement('button');
+    btn.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);height:64px;font-size:1.4rem;font-weight:700;color:var(--text);min-height:44px;transition:all .15s;';
+    btn.textContent = k;
+    if (!k) { btn.style.background='transparent'; btn.style.border='none'; }
+    else btn.onclick = () => { k === '⌫' ? deletePinDigit() : addPinDigit(k); };
+    gridEl.appendChild(btn);
+  });
+}
+function addPinDigit(d) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += d;
+  updatePinDots();
+  if (pinEntry.length === 4) {
+    setTimeout(() => {
+      const stored = localStorage.getItem('dietPin') || '0406';
+      if (pinEntry === stored) {
+        document.getElementById('pin-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        initApp();
+      } else {
+        document.getElementById('pin-error').style.opacity = '1';
+        setTimeout(() => document.getElementById('pin-error').style.opacity = '0', 1500);
+        pinEntry = '';
+        updatePinDots();
+      }
+    }, 200);
+  }
+}
+function deletePinDigit() {
+  pinEntry = pinEntry.slice(0, -1);
   updatePinDots();
 }
-
 function updatePinDots() {
   for (let i=0;i<4;i++) {
-    document.getElementById('dot'+i).classList.toggle('filled', i < pinEntry.length);
+    const d = document.getElementById('dot'+i);
+    d.style.background = i < pinEntry.length ? 'var(--primary)' : 'transparent';
   }
 }
 
-function checkPin() {
-  if (pinEntry === getPin()) {
-    sessionStorage.setItem('gymPinUnlocked','1');
-    document.getElementById('pin-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    initApp();
-  } else {
-    document.getElementById('pin-error').textContent = 'PIN errato, riprova';
-    pinEntry = '';
-    updatePinDots();
-    setTimeout(() => document.getElementById('pin-error').textContent = '', 1500);
-  }
+// ─── THEME ────────────────────────────────────────────────────────────────────
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', getTheme());
 }
-
-// ===================== INIT =====================
-function initApp() {
-  loadTheme();
-  loadScheda();
-  loadProgressi();
-  loadHistory();
-  loadDietPage();
-  loadSpesaPage();
-  loadSettings();
-  populateExerciseSelect();
-  buildCalendar();
-  drawWeightChart();
-  drawExerciseChart();
-  updateVolumeStats();
-  updateMonthlyStats();
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('gymPinUnlocked') === '1') {
-    document.getElementById('pin-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    initApp();
-  }
-});
-
-// ===================== NAVIGATION =====================
-const PAGE_TITLES = ['🏋️ Allenamento','📈 Progressi','📋 Storico','🥗 Dieta','🛒 Spesa','⚙️ Impostazioni'];
-const PAGE_IDS = ['allena','progressi','storico','dieta','spesa','impostazioni'];
-
-function showPage(name, idx) {
-  PAGE_IDS.forEach(p => document.getElementById('page-'+p).classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  for (let i=0;i<6;i++) document.getElementById('nav-'+i).classList.toggle('active', i===idx);
-  document.getElementById('page-title').textContent = PAGE_TITLES[idx];
-  document.getElementById('main-content').scrollTop = 0;
-  if (name==='progressi') { loadProgressi(); drawWeightChart(); drawExerciseChart(); updateVolumeStats(); updateMonthlyStats(); buildCalendar(); }
-  if (name==='storico') loadHistory();
-}
-
-// ===================== THEME =====================
-function loadTheme() {
-  const t = localStorage.getItem('gymTheme') || 'dark';
-  if (t === 'light') {
-    document.body.classList.add('light-mode');
-    document.getElementById('theme-btn').textContent = '🌙';
-    document.getElementById('theme-toggle').checked = true;
-  }
-}
-
 function toggleTheme() {
-  document.body.classList.toggle('light-mode');
-  const isLight = document.body.classList.contains('light-mode');
-  localStorage.setItem('gymTheme', isLight ? 'light' : 'dark');
-  document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀️';
-  document.getElementById('theme-toggle').checked = isLight;
-  drawWeightChart(); drawExerciseChart();
+  const t = getTheme() === 'dark' ? 'light' : 'dark';
+  saveTheme(t);
+  applyTheme();
+  const tog = document.getElementById('theme-toggle');
+  if (tog) tog.checked = t === 'light';
 }
 
-// ===================== SCHEDA =====================
-function loadScheda() {
-  const saved = localStorage.getItem('schedaCurrent');
-  const startStr = localStorage.getItem('schedaStartDate');
-  if (!saved || !startStr) {
-    currentScheda = 'A';
-    localStorage.setItem('schedaCurrent','A');
-    localStorage.setItem('schedaStartDate', new Date().toISOString());
-  } else {
-    currentScheda = saved;
-  }
-  updateSchedaBanner();
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const content = document.getElementById('content');
+  content.scrollTop = 0;
+  if (tab === 'piano') renderPiano();
+  else if (tab === 'ricette') renderRicette();
+  else if (tab === 'spesa') renderSpesa();
+  else if (tab === 'preferiti') renderPreferiti();
+  else if (tab === 'impostazioni') renderImpostazioni();
 }
 
-function updateSchedaBanner() {
-  const startStr = localStorage.getItem('schedaStartDate');
-  const start = startStr ? new Date(startStr) : new Date();
+
+// ─── UTILITY ─────────────────────────────────────────────────────────────────
+function esc(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+function getRecipe(id) { return RECIPES.find(r=>r.id===id); }
+function isFavorite(id) { return getFavorites().includes(id); }
+function toggleFavorite(id, ev) {
+  if (ev) ev.stopPropagation();
+  const favs = getFavorites();
+  const idx = favs.indexOf(id);
+  if (idx >= 0) favs.splice(idx,1); else favs.push(id);
+  saveFavorites(favs);
+  // refresh hearts in current view
+  document.querySelectorAll('.fav-btn[data-id="'+id+'"]').forEach(b => {
+    b.textContent = favs.includes(id) ? '❤️' : '🤍';
+  });
+  if (state.currentTab === 'preferiti') renderPreferiti();
+}
+function getMondayOfWeek() {
   const now = new Date();
-  const diffDays = Math.floor((now - start) / 86400000);
-  const week = Math.min(Math.ceil((diffDays+1)/7), 8);
-  const pct = Math.min(((diffDays)/56)*100, 100);
-  document.getElementById('scheda-badge').textContent = 'SCHEDA ' + currentScheda;
-  document.getElementById('scheda-info').textContent = `Settimana ${week} di 8`;
-  document.getElementById('scheda-sub').textContent = `Iniziata il ${start.toLocaleDateString('it-IT')}`;
-  document.getElementById('scheda-progress').style.width = pct + '%';
-  document.getElementById('info-scheda').textContent = currentScheda;
-  document.getElementById('info-week').textContent = week;
-  document.getElementById('info-start').textContent = start.toLocaleDateString('it-IT');
-  const alert = document.getElementById('scheda-alert');
-  if (diffDays >= 56) { alert.classList.add('show'); }
-  else { alert.classList.remove('show'); }
+  const day = now.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + diff);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+function getWeekDays() {
+  const mon = getMondayOfWeek();
+  return Array.from({length:7}, (_,i) => {
+    const d = new Date(mon);
+    d.setDate(mon.getDate()+i);
+    return d;
+  });
+}
+function isToday(date) {
+  const t = new Date();
+  return date.getDate()===t.getDate() && date.getMonth()===t.getMonth() && date.getFullYear()===t.getFullYear();
+}
+function dayKey(date) {
+  return date.toISOString().split('T')[0];
+}
+function calcCalories(plan) {
+  let cal=0;
+  SLOTS.forEach(slot => {
+    const rid = plan[slot];
+    if (rid) { const r = getRecipe(rid); if(r) cal += r.calories; }
+  });
+  return cal;
+}
+function calcMacros(plan) {
+  let m={protein:0,carbs:0,fat:0};
+  SLOTS.forEach(slot => {
+    const rid = plan[slot];
+    if (rid) { const r = getRecipe(rid); if(r) {m.protein+=r.macros.protein;m.carbs+=r.macros.carbs;m.fat+=r.macros.fat;} }
+  });
+  return m;
 }
 
-function cambiaScheda() {
-  currentScheda = currentScheda === 'A' ? 'B' : 'A';
-  localStorage.setItem('schedaCurrent', currentScheda);
-  localStorage.setItem('schedaStartDate', new Date().toISOString());
-  updateSchedaBanner();
-  showToast('Scheda cambiata in ' + currentScheda + '!');
-  if (currentDay) { selectDay(currentDay); }
-}
+// ─── PIANO ───────────────────────────────────────────────────────────────────
+function renderPiano() {
+  const content = document.getElementById('content');
+  const weekDays = getWeekDays();
+  const plan = getPlan();
 
-// ===================== WORKOUT =====================
-function selectDay(day) {
-  currentDay = day;
-  workoutSessionNotes = {};
-  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('.day-btn.'+day.toLowerCase()).classList.add('active');
-  document.getElementById('workout-area').style.display = 'block';
-  buildExerciseList();
-  startChrono();
-}
+  let html = `<div class="page" style="padding:16px 0 8px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 16px;">
+    <div>
+      <div style="font-size:1.3rem;font-weight:800;color:var(--text);">📅 Piano Settimanale</div>
+      <div style="font-size:.8rem;color:var(--muted);">Settimana corrente</div>
+    </div>
+    <button class="btn btn-primary" onclick="generaSettimana()" style="font-size:.8rem;padding:10px 14px;">✨ Genera</button>
+  </div>
+  <div style="display:flex;overflow-x:auto;gap:12px;padding:0 16px 16px;scrollbar-width:none;">`;
 
-function buildExerciseList() {
-  const exercises = EXERCISES[currentScheda][currentDay];
-  const container = document.getElementById('exercises-list');
-  container.innerHTML = '';
-  const totalSets = exercises.reduce((a,e)=>a+e.sets,0);
-  document.getElementById('ws-ex').textContent = exercises.length;
-  document.getElementById('ws-sets').textContent = totalSets;
-  const estMin = Math.round((totalSets * 2.5) + (totalSets * (currentDay==='LEGS'?2:1.5)));
-  document.getElementById('ws-dur').textContent = estMin + 'min';
-
-  exercises.forEach((ex, idx) => {
-    const key = exKey(ex.name);
-    const prs = JSON.parse(localStorage.getItem('gymPRs') || '{}');
-    const pr = prs[key];
-    let suggestKg = pr ? (pr.allReps ? parseFloat((pr.weight + 2.5).toFixed(1)) : pr.weight) : '';
-    const savedNote = workoutSessionNotes[key] || '';
-    const div = document.createElement('div');
-    div.className = 'exercise-card';
-    div.innerHTML = `
-      <div class="ex-header">
+  weekDays.forEach((day, idx) => {
+    const dk = dayKey(day);
+    const dp = plan[dk] || {};
+    const totalCal = calcCalories(dp);
+    const isActive = state.activeDay === dk;
+    const today = isToday(day);
+    html += `<div class="day-card ${today?'today':''} ${isActive?'active-day':''}" onclick="toggleDay('${dk}')" style="flex-shrink:0;width:160px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div>
-          <div class="ex-name">${ex.name}</div>
-          <div class="ex-sets">${ex.sets} × ${ex.reps} rip${pr ? ` · PR: ${pr.weight}kg` : ''}</div>
+          <div style="font-size:.7rem;color:var(--muted);">${DAYS_IT[idx].substring(0,3)}</div>
+          <div style="font-size:1rem;font-weight:700;color:${today?'var(--primary)':'var(--text)'};">${day.getDate()}</div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="openVideo('${ex.name}')">▶ Video</button>
-      </div>
-      <div class="ex-inputs">
-        <div><label>Peso (kg)</label><input type="number" id="kg-${idx}" step="0.5" min="0" max="500" placeholder="${suggestKg||'kg'}" value="${suggestKg||''}" oninput="updateSuggestion(${idx})"></div>
-        <div><label>Rip completate</label><input type="number" id="reps-${idx}" min="0" max="999" placeholder="${ex.reps}" oninput="updateSuggestion(${idx})"></div>
-      </div>
-      <div class="ex-suggestion neutral" id="sug-${idx}">Inserisci peso e rip per il suggerimento</div>
-      <div class="rest-row">
-        <button class="btn btn-ghost btn-sm rest-btn" id="rest-btn-${idx}" onclick="startRestTimer(${idx},${ex.restSec})">⏱ Riposo ${ex.restSec}s</button>
-      </div>
-      <div><label>📝 Note</label><textarea id="note-${idx}" placeholder="Sensazioni, varianti, dolori..." rows="2" oninput="saveNote(${idx},'${key}')">${savedNote}</textarea></div>
-    `;
-    container.appendChild(div);
-    setTimeout(() => updateSuggestion(idx), 50);
-  });
-}
-
-function exKey(name) { return name.replace(/[^a-zA-Zàèéìòù]/g,'_').toLowerCase(); }
-
-function openVideo(name) {
-  const q = encodeURIComponent(name + ' tutorial gym');
-  window.open('https://www.youtube.com/results?search_query='+q, '_blank');
-}
-
-function updateSuggestion(idx) {
-  const exercises = EXERCISES[currentScheda][currentDay];
-  const ex = exercises[idx];
-  const kg = parseFloat(document.getElementById('kg-'+idx).value);
-  const reps = parseInt(document.getElementById('reps-'+idx).value);
-  const el = document.getElementById('sug-'+idx);
-  if (!kg && !reps) { el.className='ex-suggestion neutral'; el.textContent='Inserisci peso e rip per il suggerimento'; return; }
-  const target = parseInt((ex.reps+'-').split('-')[1] || ex.reps.split('-')[0]);
-  const min = parseInt(ex.reps.split('-')[0]);
-  if (reps >= target) {
-    el.className='ex-suggestion ok'; el.textContent=`✅ Ottimo! +2.5kg alla prossima sessione`;
-  } else if (reps >= min) {
-    el.className='ex-suggestion ok'; el.textContent=`✅ Nell\'intervallo target`;
-  } else if (!isNaN(reps)) {
-    const diff = min - reps;
-    el.className='ex-suggestion warn'; el.textContent=`⚠️ Mancano ${diff} rip al target minimo`;
-  }
-}
-
-function saveNote(idx, key) {
-  workoutSessionNotes[key] = document.getElementById('note-'+idx).value;
-}
-
-function startRestTimer(idx, seconds) {
-  const btn = document.getElementById('rest-btn-'+idx);
-  if (restTimers[idx]) {
-    clearInterval(restTimers[idx]);
-    delete restTimers[idx];
-    btn.className='btn btn-ghost btn-sm rest-btn';
-    btn.textContent=`⏱ Riposo ${seconds}s`;
-    return;
-  }
-  let remaining = seconds;
-  btn.className='btn btn-sm rest-btn running';
-  btn.textContent=`⏹ ${remaining}s`;
-  restTimers[idx] = setInterval(() => {
-    remaining--;
-    if (remaining <= 0) {
-      clearInterval(restTimers[idx]);
-      delete restTimers[idx];
-      btn.className='btn btn-sm rest-btn done';
-      btn.textContent='✅ Via!';
-      if (navigator.vibrate) navigator.vibrate([200,100,200]);
-      setTimeout(()=>{ btn.className='btn btn-ghost btn-sm rest-btn'; btn.textContent=`⏱ Riposo ${seconds}s`; }, 3000);
-    } else {
-      btn.textContent=`⏹ ${remaining}s`;
-    }
-  },1000);
-}
-
-// ===================== CHRONO =====================
-function startChrono() {
-  if (chronoInterval) clearInterval(chronoInterval);
-  chronoStart = Date.now();
-  chronoElapsed = 0;
-  chronoInterval = setInterval(() => {
-    chronoElapsed = Math.floor((Date.now() - chronoStart) / 1000);
-    const m = String(Math.floor(chronoElapsed/60)).padStart(2,'0');
-    const s = String(chronoElapsed%60).padStart(2,'0');
-    document.getElementById('chrono').textContent = m+':'+s;
-  }, 1000);
-}
-
-function stopChrono() {
-  if (chronoInterval) { clearInterval(chronoInterval); chronoInterval = null; }
-  return chronoElapsed;
-}
-
-// ===================== SAVE WORKOUT =====================
-function saveWorkout() {
-  const exercises = EXERCISES[currentScheda][currentDay];
-  if (!currentDay) { showToast('Seleziona un giorno!'); return; }
-  const duration = stopChrono();
-  const prs = JSON.parse(localStorage.getItem('gymPRs') || '{}');
-  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
-  let newPRs = 0;
-  const exData = exercises.map((ex, idx) => {
-    const key = exKey(ex.name);
-    const kg = parseFloat(document.getElementById('kg-'+idx)?.value) || 0;
-    const reps = parseInt(document.getElementById('reps-'+idx)?.value) || 0;
-    const note = document.getElementById('note-'+idx)?.value || '';
-    const target = parseInt((ex.reps+'-').split('-')[1] || ex.reps.split('-')[0]);
-    const allReps = reps >= parseInt(ex.reps.split('-')[0]);
-    if (kg > 0) {
-      if (!prs[key] || kg > prs[key].weight) {
-        prs[key] = { weight: kg, date: new Date().toISOString(), allReps };
-        newPRs++;
+        ${totalCal ? `<div style="font-size:.7rem;font-weight:700;color:var(--primary);">${totalCal} kcal</div>` : ''}
+      </div>`;
+    SLOTS.forEach(slot => {
+      const rid = dp[slot];
+      const rec = rid ? getRecipe(rid) : null;
+      html += `<div style="margin-bottom:4px;">
+        <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">${SLOT_LABELS[slot]}</div>`;
+      if (rec) {
+        html += `<div class="slot-item" onclick="event.stopPropagation();openRecipeDetail('${rec.id}')" oncontextmenu="event.preventDefault();removeMeal('${dk}','${slot}')">
+          <span style="font-size:1.1rem;">${rec.emoji}</span>
+          <span style="font-size:.7rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${rec.name}</span>
+        </div>`;
       } else {
-        prs[key].allReps = allReps;
+        html += `<button class="slot-add" onclick="event.stopPropagation();openMealPicker('${dk}','${slot}')">+</button>`;
       }
-    }
-    return { name: ex.name, sets: ex.sets, reps: ex.reps, kg, repsCompleted: reps, note };
+      html += `</div>`;
+    });
+    html += `</div>`;
   });
-  const session = {
-    id: Date.now(),
-    date: new Date().toISOString(),
-    day: currentDay,
-    scheda: currentScheda,
-    exercises: exData,
-    duration,
-    newPRs
-  };
-  history.unshift(session);
-  if (history.length > 100) history.pop();
-  localStorage.setItem('gymPRs', JSON.stringify(prs));
-  localStorage.setItem('gymHistory', JSON.stringify(history));
-  showToast(`✅ Allenamento salvato! ${newPRs > 0 ? newPRs+' PR battuti! 🏆' : ''}`);
-  document.getElementById('workout-area').style.display='none';
-  currentDay = null;
-  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
-  clearAllRestTimers();
-}
 
-function clearAllRestTimers() {
-  Object.keys(restTimers).forEach(k => clearInterval(restTimers[k]));
-  restTimers = {};
-}
+  html += `</div>`;
 
-// ===================== PROGRESSI =====================
-function loadProgressi() {
-  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
-  const prs = JSON.parse(localStorage.getItem('gymPRs') || '{}');
-  document.getElementById('p-sessions').textContent = history.length;
-  const now = new Date();
-  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay() + 1); startOfWeek.setHours(0,0,0,0);
-  const thisWeek = history.filter(h => new Date(h.date) >= startOfWeek).length;
-  document.getElementById('p-week').textContent = thisWeek;
-  const streak = calcStreak(history);
-  document.getElementById('p-streak').textContent = streak;
-  document.getElementById('p-prs').textContent = Object.keys(prs).length;
-}
-
-function calcStreak(history) {
-  if (!history.length) return 0;
-  const days = [...new Set(history.map(h => h.date.slice(0,10)))].sort().reverse();
-  let streak = 0;
-  let check = new Date(); check.setHours(0,0,0,0);
-  for (const d of days) {
-    const dd = new Date(d); dd.setHours(0,0,0,0);
-    const diff = Math.round((check - dd) / 86400000);
-    if (diff <= 1) { streak++; check = dd; }
-    else break;
+  // Expanded day detail
+  if (state.activeDay) {
+    const dp = plan[state.activeDay] || {};
+    const totalCal = calcCalories(dp);
+    const macros = calcMacros(dp);
+    const total = macros.protein + macros.carbs + macros.fat || 1;
+    html += `<div style="padding:0 16px 16px;">
+      <div class="card" style="padding:16px;">
+        <div style="font-size:1rem;font-weight:700;margin-bottom:12px;">Dettaglio giornata</div>
+        <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">${totalCal}</div>
+            <div style="font-size:.7rem;color:var(--muted);">kcal</div>
+          </div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:1.1rem;font-weight:700;color:#FF6B35;">${macros.protein}g</div>
+            <div style="font-size:.7rem;color:var(--muted);">Proteine</div>
+          </div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:1.1rem;font-weight:700;color:#4ECDC4;">${macros.carbs}g</div>
+            <div style="font-size:.7rem;color:var(--muted);">Carboidrati</div>
+          </div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:1.1rem;font-weight:700;color:#9B59B6;">${macros.fat}g</div>
+            <div style="font-size:.7rem;color:var(--muted);">Grassi</div>
+          </div>
+        </div>
+        <div class="macro-bar" style="margin-bottom:16px;">
+          <div class="p-seg" style="width:${macros.protein/total*100}%;height:8px;border-radius:4px;"></div>
+          <div class="c-seg" style="width:${macros.carbs/total*100}%;height:8px;border-radius:4px;"></div>
+          <div class="f-seg" style="width:${macros.fat/total*100}%;height:8px;border-radius:4px;"></div>
+        </div>`;
+    SLOTS.forEach(slot => {
+      const rid = dp[slot];
+      const rec = rid ? getRecipe(rid) : null;
+      html += `<div style="margin-bottom:10px;">
+        <div style="font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:6px;">${SLOT_LABELS[slot]}</div>`;
+      if (rec) {
+        html += `<div class="slot-item" onclick="openRecipeDetail('${rec.id}')">
+          <span style="font-size:1.2rem;">${rec.emoji}</span>
+          <div style="flex:1;">
+            <div style="font-size:.85rem;font-weight:700;">${esc(rec.name)}</div>
+            <div style="font-size:.72rem;color:var(--muted);">${rec.calories} kcal · P:${rec.macros.protein}g C:${rec.macros.carbs}g G:${rec.macros.fat}g</div>
+          </div>
+          <button onclick="event.stopPropagation();removeMeal('${state.activeDay}','${slot}')" style="background:none;color:var(--danger);font-size:1.1rem;padding:4px;">✕</button>
+        </div>`;
+      } else {
+        html += `<button class="slot-add" onclick="openMealPicker('${state.activeDay}','${slot}')">+ Aggiungi ${SLOT_LABELS[slot]}</button>`;
+      }
+      html += `</div>`;
+    });
+    html += `<button class="btn btn-ghost" onclick="generaGiorno('${state.activeDay}')" style="width:100%;margin-top:8px;">🎲 Genera giorno casuale</button>`;
+    html += `</div></div>`;
   }
-  return streak;
+
+  html += `</div>`;
+  content.innerHTML = html;
 }
 
-function addWeight() {
-  const val = parseFloat(document.getElementById('weight-input').value);
-  if (!val || val<30 || val>300) { showToast('Peso non valido'); return; }
-  const weights = JSON.parse(localStorage.getItem('gymWeight') || '[]');
-  weights.push({ date: new Date().toISOString(), weight: val });
-  localStorage.setItem('gymWeight', JSON.stringify(weights));
-  document.getElementById('weight-input').value = '';
-  drawWeightChart();
-  showToast('Peso aggiunto: '+val+'kg');
-}
-
-function drawWeightChart() {
-  const canvas = document.getElementById('weight-chart');
-  if (!canvas) return;
-  const weights = JSON.parse(localStorage.getItem('gymWeight') || '[]');
-  const recent = weights.slice(-12);
-  const w = canvas.parentElement.offsetWidth - 16;
-  canvas.width = w; canvas.height = 120;
-  const ctx = canvas.getContext('2d');
-  const isDark = !document.body.classList.contains('light-mode');
-  ctx.clearRect(0,0,w,120);
-  if (recent.length < 2) {
-    ctx.fillStyle = isDark ? '#555' : '#aaa';
-    ctx.font = '13px Segoe UI'; ctx.textAlign = 'center';
-    ctx.fillText('Aggiungi almeno 2 misurazioni', w/2, 65);
-    return;
-  }
-  const vals = recent.map(r=>r.weight);
-  const mn = Math.min(...vals)-1, mx = Math.max(...vals)+1;
-  const pad = {l:36,r:10,t:10,b:28};
-  const aw = w-pad.l-pad.r, ah = 120-pad.t-pad.b;
-  // grid
-  ctx.strokeStyle = isDark ? '#2a2a3e' : '#e0e0e0'; ctx.lineWidth=1;
-  for (let i=0;i<=4;i++) {
-    const y = pad.t + (ah/4)*i;
-    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
-    ctx.fillStyle=isDark?'#555':'#999'; ctx.font='10px Segoe UI'; ctx.textAlign='right';
-    ctx.fillText((mx - (mx-mn)/4*i).toFixed(1), pad.l-4, y+4);
-  }
-  // line
-  ctx.strokeStyle='#2196F3'; ctx.lineWidth=2; ctx.lineJoin='round';
-  ctx.beginPath();
-  recent.forEach((r,i)=>{ const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.stroke();
-  // dots
-  recent.forEach((r,i)=>{
-    const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah;
-    ctx.fillStyle='#2196F3'; ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fill();
-  });
-  // x labels
-  ctx.fillStyle=isDark?'#555':'#999'; ctx.font='9px Segoe UI'; ctx.textAlign='center';
-  recent.forEach((r,i)=>{
-    if (i % Math.ceil(recent.length/4) === 0 || i===recent.length-1) {
-      const x=pad.l+i*(aw/(recent.length-1));
-      const d=new Date(r.date); ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`, x, 120-6);
-    }
-  });
-  // trend
-  if (vals.length >= 2) {
-    const diff = vals[vals.length-1] - vals[0];
-    const trend = diff > 0.1 ? '↑ +'+diff.toFixed(1)+'kg' : diff < -0.1 ? '↓ '+diff.toFixed(1)+'kg' : '→ Stabile';
-    document.getElementById('weight-trend').textContent = 'Trend: ' + trend;
+function toggleDay(dk) {
+  state.activeDay = state.activeDay === dk ? null : dk;
+  renderPiano();
+  if (state.activeDay) {
+    setTimeout(()=>{ const el=document.getElementById('content'); el.scrollTop=el.scrollHeight; }, 50);
   }
 }
 
-function populateExerciseSelect() {
-  const sel = document.getElementById('ex-chart-select');
-  if (!sel) return;
-  const all = [];
-  ['A','B'].forEach(s=>['PUSH','PULL','LEGS'].forEach(d=>EXERCISES[s][d].forEach(e=>{ if (!all.includes(e.name)) all.push(e.name); })));
-  sel.innerHTML = all.map(n=>`<option value="${n}">${n}</option>`).join('');
+function removeMeal(dk, slot) {
+  const plan = getPlan();
+  if (!plan[dk]) return;
+  delete plan[dk][slot];
+  savePlan(plan);
+  renderPiano();
 }
 
-function drawExerciseChart() {
-  const canvas = document.getElementById('ex-chart');
-  const sel = document.getElementById('ex-chart-select');
-  if (!canvas || !sel) return;
-  const exName = sel.value;
-  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
-  const key = exKey(exName);
-  const data = [];
-  [...history].reverse().forEach(s => {
-    const ex = s.exercises?.find(e=>exKey(e.name)===key);
-    if (ex && ex.kg > 0) data.push({ date: s.date, weight: ex.kg });
+function generaSettimana() {
+  const plan = getPlan();
+  const weekDays = getWeekDays();
+  weekDays.forEach(day => {
+    const dk = dayKey(day);
+    plan[dk] = {};
+    SLOTS.forEach(slot => {
+      const pool = RECIPES.filter(r => r.category === slot);
+      plan[dk][slot] = pool[Math.floor(Math.random()*pool.length)].id;
+    });
   });
-  const recent = data.slice(-10);
-  const w = canvas.parentElement.offsetWidth - 16;
-  canvas.width = w; canvas.height = 120;
-  const ctx = canvas.getContext('2d');
-  const isDark = !document.body.classList.contains('light-mode');
-  ctx.clearRect(0,0,w,120);
-  if (recent.length < 2) {
-    ctx.fillStyle=isDark?'#555':'#aaa'; ctx.font='13px Segoe UI'; ctx.textAlign='center';
-    ctx.fillText('Nessun dato per questo esercizio', w/2, 65); return;
+  savePlan(plan);
+  renderPiano();
+}
+
+function generaGiorno(dk) {
+  const plan = getPlan();
+  plan[dk] = {};
+  SLOTS.forEach(slot => {
+    const pool = RECIPES.filter(r => r.category === slot);
+    plan[dk][slot] = pool[Math.floor(Math.random()*pool.length)].id;
+  });
+  savePlan(plan);
+  renderPiano();
+}
+
+
+// ─── MEAL PICKER MODAL ───────────────────────────────────────────────────────
+function openMealPicker(dk, slot) {
+  const pool = RECIPES.filter(r => r.category === slot);
+  let html = `<div class="modal-content" style="padding:16px;pointer-events:all;" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div style="font-size:1.1rem;font-weight:700;margin-bottom:16px;">Scegli per ${SLOT_LABELS[slot]}</div>`;
+  pool.forEach(r => {
+    html += `<div class="slot-item" style="margin-bottom:8px;" onclick="assignMeal('${dk}','${slot}','${r.id}')">
+      <span style="font-size:1.4rem;">${r.emoji}</span>
+      <div style="flex:1;">
+        <div style="font-size:.9rem;font-weight:600;">${esc(r.name)}</div>
+        <div style="font-size:.75rem;color:var(--muted);">${r.calories} kcal · ${r.prepTime+r.cookTime} min</div>
+      </div>
+    </div>`;
+  });
+  html += `<button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:12px;">Annulla</button>
+  </div>`;
+  showModal(html);
+}
+
+function assignMeal(dk, slot, rid) {
+  const plan = getPlan();
+  if (!plan[dk]) plan[dk] = {};
+  plan[dk][slot] = rid;
+  savePlan(plan);
+  closeModal();
+  renderPiano();
+}
+
+// ─── RICETTE ─────────────────────────────────────────────────────────────────
+function renderRicette() {
+  const content = document.getElementById('content');
+  let html = `<div class="page" style="padding:16px 0 8px;">
+  <div style="padding:0 16px 12px;font-size:1.3rem;font-weight:800;">🍽️ Ricette</div>
+  <div style="padding:0 16px 12px;">
+    <input class="input-field" type="search" placeholder="🔍 Cerca ricetta..." value="${esc(state.recipeSearch)}" 
+      oninput="state.recipeSearch=this.value;renderRicette()" style="width:100%;">
+  </div>
+  <div class="category-filter">
+    <button class="cat-btn ${state.recipeFilter==='tutti'?'active':''}" onclick="setRecipeFilter('tutti')">Tutti</button>
+    <button class="cat-btn ${state.recipeFilter==='colazione'?'active':''}" onclick="setRecipeFilter('colazione')" style="color:${state.recipeFilter==='colazione'?'#fff':'var(--col-col)'};${state.recipeFilter==='colazione'?'background:var(--col-col);border-color:var(--col-col);':''}">☀️ Colazione</button>
+    <button class="cat-btn ${state.recipeFilter==='pranzo'?'active':''}" onclick="setRecipeFilter('pranzo')" style="${state.recipeFilter==='pranzo'?'background:var(--col-pra);border-color:var(--col-pra);color:#fff;':'color:var(--col-pra);'}">🌤️ Pranzo</button>
+    <button class="cat-btn ${state.recipeFilter==='cena'?'active':''}" onclick="setRecipeFilter('cena')" style="${state.recipeFilter==='cena'?'background:var(--col-cen);border-color:var(--col-cen);color:#fff;':'color:var(--col-cen);'}">🌙 Cena</button>
+    <button class="cat-btn ${state.recipeFilter==='snack'?'active':''}" onclick="setRecipeFilter('snack')" style="${state.recipeFilter==='snack'?'background:var(--col-sna);border-color:var(--col-sna);color:#fff;':'color:var(--col-sna);'}">🍎 Snack</button>
+  </div>`;
+
+  const filtered = RECIPES.filter(r => {
+    const matchCat = state.recipeFilter === 'tutti' || r.category === state.recipeFilter;
+    const q = state.recipeSearch.toLowerCase();
+    const matchSearch = !q || r.name.toLowerCase().includes(q) || r.tags.some(t=>t.includes(q));
+    return matchCat && matchSearch;
+  });
+
+  if (!filtered.length) {
+    html += `<div style="text-align:center;padding:48px 16px;color:var(--muted);">Nessuna ricetta trovata</div>`;
+  } else {
+    html += `<div class="recipe-grid" style="padding-top:8px;">`;
+    filtered.forEach(r => {
+      const fav = isFavorite(r.id);
+      html += `<div class="recipe-card" onclick="openRecipeDetail('${r.id}')">
+        <button class="fav-btn" data-id="${r.id}" onclick="toggleFavorite('${r.id}',event)">${fav?'❤️':'🤍'}</button>
+        <div class="emoji">${r.emoji}</div>
+        <div class="r-name">${esc(r.name)}</div>
+        <div class="r-meta">⏱ ${r.prepTime+r.cookTime} min</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="r-cal">${r.calories} kcal</div>
+          <span class="diff-badge diff-${r.difficulty}">${r.difficulty}</span>
+        </div>
+        <div style="font-size:.68rem;padding:2px 6px;border-radius:8px;color:#fff;background:${CAT_COLORS[r.category]};align-self:flex-start;">${r.category}</div>
+      </div>`;
+    });
+    html += `</div>`;
   }
-  const vals = recent.map(r=>r.weight);
-  const mn = Math.max(0, Math.min(...vals)-5), mx = Math.max(...vals)+5;
-  const pad = {l:40,r:10,t:10,b:28};
-  const aw = w-pad.l-pad.r, ah = 120-pad.t-pad.b;
-  ctx.strokeStyle=isDark?'#2a2a3e':'#e0e0e0'; ctx.lineWidth=1;
-  for (let i=0;i<=4;i++) {
-    const y=pad.t+(ah/4)*i; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
-    ctx.fillStyle=isDark?'#555':'#999'; ctx.font='10px Segoe UI'; ctx.textAlign='right';
-    ctx.fillText((mx-(mx-mn)/4*i).toFixed(1)+'kg', pad.l-4, y+4);
-  }
-  ctx.strokeStyle='#4CAF50'; ctx.lineWidth=2; ctx.lineJoin='round';
-  ctx.beginPath();
-  recent.forEach((r,i)=>{ const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.stroke();
-  recent.forEach((r,i)=>{
-    const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah;
-    ctx.fillStyle='#4CAF50'; ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fill();
-  });
-  ctx.fillStyle=isDark?'#555':'#999'; ctx.font='9px Segoe UI'; ctx.textAlign='center';
-  recent.forEach((r,i)=>{
-    if (i % Math.ceil(recent.length/4)===0 || i===recent.length-1) {
-      const x=pad.l+i*(aw/(recent.length-1));
-      const d=new Date(r.date); ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`,x,120-6);
-    }
-  });
+  html += `</div>`;
+  content.innerHTML = html;
 }
 
-function updateVolumeStats() {
-  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
-  const now = new Date();
-  const startW = new Date(now); startW.setDate(now.getDate()-now.getDay()+1); startW.setHours(0,0,0,0);
-  const startLW = new Date(startW); startLW.setDate(startLW.getDate()-7);
-  let thisVol=0, lastVol=0;
-  history.forEach(s => {
-    const d = new Date(s.date);
-    const vol = (s.exercises||[]).reduce((a,e)=>a+(e.kg||0)*(e.repsCompleted||0)*e.sets,0);
-    if (d>=startW) thisVol+=vol;
-    else if (d>=startLW) lastVol+=vol;
-  });
-  const max = Math.max(thisVol,lastVol,1);
-  document.getElementById('vol-bar-this').style.height = (thisVol/max*80)+'%';
-  document.getElementById('vol-bar-last').style.height = (lastVol/max*80)+'%';
-  const diff = thisVol-lastVol;
-  document.getElementById('volume-info').textContent = `Questa settimana: ${Math.round(thisVol)}kg | Scorsa: ${Math.round(lastVol)}kg${diff!==0?' ('+( diff>0?'+':'')+Math.round(diff)+'kg)':''}`;
+function setRecipeFilter(f) {
+  state.recipeFilter = f;
+  renderRicette();
 }
 
-function updateMonthlyStats() {
-  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
-  const now = new Date();
-  const startM = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthly = history.filter(s=>new Date(s.date)>=startM);
-  document.getElementById('m-sessions').textContent = monthly.length;
-  document.getElementById('m-prs').textContent = monthly.reduce((a,s)=>a+(s.newPRs||0),0);
-  const vol = monthly.reduce((a,s)=>{
-    return a + (s.exercises||[]).reduce((b,e)=>b+(e.kg||0)*(e.repsCompleted||0)*e.sets,0);
-  },0);
-  document.getElementById('m-vol').textContent = Math.round(vol);
-  const avgDur = monthly.length ? Math.round(monthly.reduce((a,s)=>a+(s.duration||0),0)/monthly.length/60) : 0;
-  document.getElementById('m-dur').textContent = avgDur ? avgDur+'min' : '--';
-}
 
-function buildCalendar() {
-  const now = new Date();
-  const year = now.getFullYear(), month = now.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
-  const trainedDays = new Set(history.filter(s=>{
-    const d=new Date(s.date); return d.getMonth()===month && d.getFullYear()===year;
-  }).map(s=>new Date(s.date).getDate()));
-  const grid = document.getElementById('calendar-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  const startCol = firstDay === 0 ? 7 : firstDay;
-  for (let i=1;i<startCol;i++) { const d=document.createElement('div'); d.className='cal-day'; grid.appendChild(d); }
-  for (let d=1;d<=daysInMonth;d++) {
-    const el=document.createElement('div');
-    el.className='cal-day'+(trainedDays.has(d)?' trained':'')+(d===now.getDate()?' today':'');
-    el.textContent=d; grid.appendChild(el);
-  }
-}
+// ─── RECIPE DETAIL MODAL ─────────────────────────────────────────────────────
+function openRecipeDetail(id) {
+  const r = getRecipe(id);
+  if (!r) return;
+  const fav = isFavorite(id);
+  const total = r.macros.protein + r.macros.carbs + r.macros.fat || 1;
+  const pPct = r.macros.protein/total*100;
+  const cPct = r.macros.carbs/total*100;
+  const fPct = r.macros.fat/total*100;
 
-// ===================== STORICO =====================
-function loadHistory() {
-  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
-  const container = document.getElementById('history-list');
-  if (!history.length) { container.innerHTML='<p style="color:var(--muted);text-align:center;padding:30px">Nessun allenamento salvato</p>'; return; }
-  const recent = history.slice(0,20);
-  container.innerHTML = recent.map(s => {
-    const d = new Date(s.date);
-    const dateStr = d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-    const badgeClass = s.day==='PUSH'?'badge-push':s.day==='PULL'?'badge-pull':'badge-legs';
-    const dur = s.duration ? Math.round(s.duration/60)+'min' : '--';
-    const exList = (s.exercises||[]).map(e=>`<span>${e.name}: ${e.kg||'?'}kg × ${e.repsCompleted||e.reps}</span>`).join(' · ');
-    const notes = (s.exercises||[]).filter(e=>e.note).map(e=>`${e.name}: ${e.note}`).join('; ');
-    return `<div class="history-item">
-      <div class="history-header">
-        <div class="history-date">${dateStr}</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <span class="day-badge ${badgeClass}">${s.day}</span>
-          <span style="font-size:11px;background:var(--card);padding:2px 7px;border-radius:10px">Sch. ${s.scheda}</span>
-          <span style="font-size:11px;color:var(--muted)">${dur}</span>
-          ${s.newPRs?`<span style="font-size:11px;background:rgba(255,152,0,0.15);color:var(--warning);padding:2px 7px;border-radius:10px">🏆 ${s.newPRs} PR</span>`:''}
+  let html = `<div class="modal-content full-modal" style="padding:0;pointer-events:all;" onclick="event.stopPropagation()">
+    <div style="position:sticky;top:0;background:var(--bg);z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);">
+      <button onclick="closeModal()" style="background:none;font-size:1.5rem;color:var(--text);min-width:44px;min-height:44px;">←</button>
+      <div style="font-size:1rem;font-weight:700;">${esc(r.name)}</div>
+      <button class="fav-btn" data-id="${id}" onclick="toggleFavorite('${id}',event)" style="font-size:1.5rem;position:static;min-width:44px;min-height:44px;">${fav?'❤️':'🤍'}</button>
+    </div>
+    <div style="padding:20px 16px;">
+      <div style="text-align:center;font-size:4rem;margin-bottom:8px;">${r.emoji}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">
+        <span style="padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700;background:${CAT_COLORS[r.category]};color:#fff;">${r.category}</span>
+        <span class="diff-badge diff-${r.difficulty}" style="padding:4px 12px;">${r.difficulty}</span>
+        <span style="padding:4px 12px;border-radius:20px;font-size:.78rem;background:var(--inner);color:var(--muted);">👥 ${r.servings} porz.</span>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;">
+        <div class="card2" style="padding:12px;text-align:center;flex:1;border-radius:var(--radius);">
+          <div style="font-size:.7rem;color:var(--muted);">⏱ Prep</div>
+          <div style="font-weight:700;">${r.prepTime}m</div>
+        </div>
+        <div class="card2" style="padding:12px;text-align:center;flex:1;border-radius:var(--radius);">
+          <div style="font-size:.7rem;color:var(--muted);">🔥 Cottura</div>
+          <div style="font-weight:700;">${r.cookTime}m</div>
+        </div>
+        <div class="card2" style="padding:12px;text-align:center;flex:1;border-radius:var(--radius);">
+          <div style="font-size:.7rem;color:var(--muted);">⚡ kcal</div>
+          <div style="font-weight:700;color:var(--primary);">${r.calories}</div>
         </div>
       </div>
-      <div class="history-ex">${exList}</div>
-      ${notes?`<div class="history-notes">📝 ${notes}</div>`:''}
-    </div>`;
-  }).join('');
-}
+      <div class="card" style="padding:14px;margin-bottom:16px;">
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:10px;">Macronutrienti</div>
+        <div class="macro-bar" style="margin-bottom:8px;">
+          <div class="p-seg" style="width:${pPct}%;height:10px;border-radius:4px;"></div>
+          <div class="c-seg" style="width:${cPct}%;height:10px;border-radius:4px;"></div>
+          <div class="f-seg" style="width:${fPct}%;height:10px;border-radius:4px;"></div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:.8rem;">
+          <div><span style="color:#FF6B35;font-weight:700;">${r.macros.protein}g</span> <span style="color:var(--muted);">Proteine</span></div>
+          <div><span style="color:#4ECDC4;font-weight:700;">${r.macros.carbs}g</span> <span style="color:var(--muted);">Carbo</span></div>
+          <div><span style="color:#9B59B6;font-weight:700;">${r.macros.fat}g</span> <span style="color:var(--muted);">Grassi</span></div>
+        </div>
+      </div>`;
 
-// ===================== DIETA =====================
-function getSeasonFromMonth() {
-  const m = new Date().getMonth();
-  if (m>=5&&m<=7) return 'estate';
-  if (m>=8&&m<=9) return 'autunno';
-  if (m>=10||m<=1) return 'inverno';
-  return 'primavera';
-}
-
-function loadDietPage() {
-  currentSeason = localStorage.getItem('gymDietSeason') || getSeasonFromMonth();
-  renderSeasonBtns();
-  renderMeals();
-  initWater();
-  renderMealPrep();
-  const profile = JSON.parse(localStorage.getItem('gymProfile') || '{}');
-  if (profile.peso) { document.getElementById('macro-weight').value = profile.peso; }
-  if (profile.obiettivo) { document.getElementById('macro-goal').value = profile.obiettivo; }
-}
-
-function selectSeason(s) {
-  currentSeason = s;
-  localStorage.setItem('gymDietSeason', s);
-  renderSeasonBtns();
-  renderMeals();
-  renderMealPrep();
-}
-
-function renderSeasonBtns() {
-  ['estate','autunno','inverno','primavera'].forEach(s => {
-    document.getElementById('btn-'+s).classList.toggle('active', s===currentSeason);
-  });
-}
-
-function renderMeals() {
-  const diet = DIET[currentSeason];
-  const container = document.getElementById('meals-content');
-  document.querySelector('#diet-meals .card-title').textContent = '🍽️ ' + diet.title;
-  container.innerHTML = diet.meals.map(meal=>`
-    <div class="meal-card">
-      <div class="meal-title">${meal.name}</div>
-      ${meal.options.map((o,i)=>`<div class="meal-option">• ${o}</div>`).join('')}
-    </div>
-  `).join('');
-}
-
-function calcMacros() {
-  const w = parseFloat(document.getElementById('macro-weight').value);
-  const goal = document.getElementById('macro-goal').value;
-  if (!w || w<30||w>300) { showToast('Inserisci un peso valido'); return; }
-  const kcalMap = {massa:35, definizione:28, mantenimento:32};
-  const cal = Math.round(w * kcalMap[goal]);
-  const prot = Math.round(w * 2);
-  const fat = Math.round(w * 1);
-  const carb = Math.round((cal - prot*4 - fat*9) / 4);
-  document.getElementById('mac-cal').textContent = cal;
-  document.getElementById('mac-pro').textContent = prot+'g';
-  document.getElementById('mac-carb').textContent = Math.max(0,carb)+'g';
-  document.getElementById('mac-fat').textContent = fat+'g';
-  document.getElementById('macros-result').style.display = 'grid';
-}
-
-function initWater() {
-  const today = new Date().toDateString();
-  let waterData = JSON.parse(localStorage.getItem('gymWaterToday') || '{}');
-  if (waterData.date !== today) { waterData = {date:today, count:0}; localStorage.setItem('gymWaterToday', JSON.stringify(waterData)); }
-  renderWater(waterData.count);
-}
-
-function renderWater(count) {
-  const grid = document.getElementById('water-grid');
-  grid.innerHTML = '';
-  for (let i=0;i<8;i++) {
-    const el = document.createElement('div');
-    el.className = 'water-glass' + (i<count?' filled':'');
-    el.textContent = '🥤';
-    el.onclick = () => toggleWater(i);
-    grid.appendChild(el);
+  if (r.tags.length) {
+    html += `<div style="margin-bottom:16px;">${r.tags.map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>`;
   }
-  document.getElementById('water-progress').style.width = (count/8*100)+'%';
-  document.getElementById('water-label').textContent = count + ' / 8 bicchieri';
-}
 
-function toggleWater(idx) {
-  const today = new Date().toDateString();
-  let waterData = JSON.parse(localStorage.getItem('gymWaterToday') || '{}');
-  if (waterData.date !== today) waterData = {date:today, count:0};
-  waterData.count = waterData.count > idx ? idx : idx+1;
-  localStorage.setItem('gymWaterToday', JSON.stringify(waterData));
-  renderWater(waterData.count);
-  if (waterData.count >= 8) showToast('🎉 Obiettivo acqua raggiunto!');
-}
-
-function resetWater() {
-  const today = new Date().toDateString();
-  localStorage.setItem('gymWaterToday', JSON.stringify({date:today,count:0}));
-  renderWater(0);
-}
-
-function renderMealPrep() {
-  const days = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
-  const preps = MEAL_PREP[currentSeason];
-  const grid = document.getElementById('meal-prep-grid');
-  grid.innerHTML = days.map((d,i) => `
-    <div class="prep-day">
-      <div class="prep-day-name">${d}</div>
-      <div class="prep-day-content">${preps[i]||preps[i%preps.length]}</div>
-    </div>
-  `).join('');
-}
-
-// ===================== SPESA =====================
-function loadSpesaPage() {
-  currentSpesaSeason = localStorage.getItem('gymSpesaSeason') || getSeasonFromMonth();
-  renderSpesaSeasonBtns();
-  renderSpesaList();
-  renderPantry();
-}
-
-function selectSpesaSeason(s) {
-  currentSpesaSeason = s;
-  localStorage.setItem('gymSpesaSeason', s);
-  renderSpesaSeasonBtns();
-  renderSpesaList();
-}
-
-function renderSpesaSeasonBtns() {
-  ['estate','autunno','inverno','primavera'].forEach(s => {
-    document.getElementById('spesa-btn-'+s).classList.toggle('active', s===currentSpesaSeason);
+  // Ingredienti
+  html += `<div style="font-size:1rem;font-weight:700;margin-bottom:12px;">🥕 Ingredienti</div>`;
+  r.ingredients.forEach(ing => {
+    html += `<div class="ingredient-row">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;"></div>
+      <div style="flex:1;font-size:.9rem;">${esc(ing.name)}</div>
+      <div style="font-size:.85rem;font-weight:600;color:var(--primary);">${ing.amount} ${ing.unit}</div>
+    </div>`;
   });
-}
 
-function renderSpesaList() {
-  const items = SPESA[currentSpesaSeason];
-  const key = 'spesaChecked_'+currentSpesaSeason;
-  const checked = JSON.parse(localStorage.getItem(key) || '[]');
-  const container = document.getElementById('spesa-list');
-  container.innerHTML = items.map((item,i) => {
-    const isChecked = checked.includes(i);
-    return `<div class="shopping-item">
-      <input type="checkbox" id="spesa-${i}" ${isChecked?'checked':''} onchange="toggleSpesaItem(${i})">
-      <label for="spesa-${i}" class="${isChecked?'checked':''}">${item.name}</label>
-      <span class="tag tag-${item.tag}">${item.tag}</span>
+  // Procedura
+  html += `<div style="font-size:1rem;font-weight:700;margin:20px 0 12px;">👨‍🍳 Procedura</div>`;
+  r.steps.forEach((step, i) => {
+    const timeMatch = step.match(/(\d+)\s*minut/i);
+    html += `<div class="step-row" id="step-${id}-${i}" onclick="toggleStep('${id}',${i})">
+      <div class="step-num">${i+1}</div>
+      <div style="flex:1;">
+        <div class="step-text" style="font-size:.88rem;line-height:1.5;">${esc(step)}</div>
+        ${timeMatch ? `<button class="timer-btn" onclick="event.stopPropagation();startTimer('${id}',${i},${parseInt(timeMatch[1])*60})">⏱ Timer ${timeMatch[1]} min</button>` : ''}
+      </div>
     </div>`;
-  }).join('');
-  updateSpesaProgress();
-}
+  });
 
-function toggleSpesaItem(idx) {
-  const key = 'spesaChecked_'+currentSpesaSeason;
-  const checked = JSON.parse(localStorage.getItem(key) || '[]');
-  const pos = checked.indexOf(idx);
-  if (pos>=0) checked.splice(pos,1); else checked.push(idx);
-  localStorage.setItem(key, JSON.stringify(checked));
-  const label = document.querySelector(`label[for="spesa-${idx}"]`);
-  if (label) label.classList.toggle('checked', checked.includes(idx));
-  updateSpesaProgress();
-}
-
-function updateSpesaProgress() {
-  const items = SPESA[currentSpesaSeason];
-  const key = 'spesaChecked_'+currentSpesaSeason;
-  const checked = JSON.parse(localStorage.getItem(key) || '[]');
-  const pct = items.length ? (checked.length/items.length*100) : 0;
-  document.getElementById('spesa-progress').style.width = pct+'%';
-  document.getElementById('spesa-count').textContent = checked.length + ' / ' + items.length + ' articoli';
-}
-
-function selectAllSpesa() {
-  const items = SPESA[currentSpesaSeason];
-  const key = 'spesaChecked_'+currentSpesaSeason;
-  localStorage.setItem(key, JSON.stringify(items.map((_,i)=>i)));
-  renderSpesaList();
-}
-
-function clearSpesa() {
-  const key = 'spesaChecked_'+currentSpesaSeason;
-  localStorage.setItem(key, '[]');
-  renderSpesaList();
-}
-
-function renderPantry() {
-  const container = document.getElementById('pantry-list');
-  container.innerHTML = PANTRY.map((item,i) => {
-    const key = 'spesaChecked_pantry';
-    const checked = JSON.parse(localStorage.getItem(key) || '[]');
-    const isChecked = checked.includes(i);
-    return `<div class="shopping-item">
-      <input type="checkbox" id="pantry-${i}" ${isChecked?'checked':''} onchange="togglePantry(${i})">
-      <label for="pantry-${i}" class="${isChecked?'checked':''}">${item.name}</label>
-      <span class="tag tag-${item.tag}">${item.tag}</span>
+  if (r.tips) {
+    html += `<div class="card2" style="padding:14px;margin-top:20px;border-left:3px solid var(--secondary);">
+      <div style="font-size:.75rem;font-weight:700;color:var(--secondary);margin-bottom:6px;">💡 Consiglio</div>
+      <div style="font-size:.88rem;">${esc(r.tips)}</div>
     </div>`;
-  }).join('');
+  }
+
+  html += `<div style="display:flex;gap:12px;margin-top:24px;padding-bottom:24px;">
+    <button class="btn btn-primary" style="flex:1;" onclick="openAddToPianoModal('${id}')">➕ Aggiungi al piano</button>
+    <button class="btn btn-ghost" onclick="toggleFavorite('${id}',event)" style="min-width:56px;">${fav?'❤️':'🤍'}</button>
+  </div>
+  </div></div>`;
+
+  showModal(html);
 }
 
-function togglePantry(idx) {
-  const key = 'spesaChecked_pantry';
-  const checked = JSON.parse(localStorage.getItem(key) || '[]');
-  const pos = checked.indexOf(idx);
-  if (pos>=0) checked.splice(pos,1); else checked.push(idx);
-  localStorage.setItem(key, JSON.stringify(checked));
-  const label = document.querySelector(`label[for="pantry-${idx}"]`);
-  if (label) label.classList.toggle('checked', checked.includes(idx));
+function toggleStep(rid, idx) {
+  const el = document.getElementById(`step-${rid}-${idx}`);
+  if (el) el.classList.toggle('done');
 }
 
-// ===================== SETTINGS =====================
-function loadSettings() {
-  const profile = JSON.parse(localStorage.getItem('gymProfile') || '{}');
-  if (profile.nome) document.getElementById('s-nome').value = profile.nome;
-  if (profile.peso) document.getElementById('s-peso').value = profile.peso;
-  if (profile.altezza) document.getElementById('s-altezza').value = profile.altezza;
-  if (profile.eta) document.getElementById('s-eta').value = profile.eta;
-  if (profile.obiettivo) document.getElementById('s-obiettivo').value = profile.obiettivo;
-  const days = JSON.parse(localStorage.getItem('gymNotifDays') || '[]');
-  days.forEach(d => { const el=document.getElementById('nd-'+d); if(el) el.checked=true; });
-  const time = localStorage.getItem('gymNotifTime') || '09:00';
-  document.getElementById('notif-time').value = time;
-  const t = localStorage.getItem('gymTheme') || 'dark';
-  document.getElementById('theme-toggle').checked = t==='light';
+// ─── TIMER FEATURE ────────────────────────────────────────────────────────────
+function startTimer(rid, stepIdx, seconds) {
+  const key = `${rid}-${stepIdx}`;
+  if (state.activeTimers[key]) {
+    clearInterval(state.activeTimers[key].interval);
+    delete state.activeTimers[key];
+  }
+  const endTime = Date.now() + seconds*1000;
+  const stepRow = document.getElementById(`step-${rid}-${stepIdx}`);
+  const btn = stepRow ? stepRow.querySelector('.timer-btn') : null;
+
+  const interval = setInterval(() => {
+    const remaining = Math.ceil((endTime - Date.now())/1000);
+    if (remaining <= 0) {
+      clearInterval(interval);
+      delete state.activeTimers[key];
+      if (btn) btn.textContent = '✅ Tempo scaduto!';
+      if (navigator.vibrate) navigator.vibrate([400,100,400]);
+      alert('⏰ Timer completato!');
+      return;
+    }
+    const m = Math.floor(remaining/60);
+    const s = remaining%60;
+    if (btn) btn.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  }, 500);
+
+  state.activeTimers[key] = {interval};
+  if (btn) btn.textContent = `⏱ ${Math.floor(seconds/60)}:00`;
 }
 
-function saveProfile() {
-  const profile = {
-    nome: document.getElementById('s-nome').value,
-    peso: parseFloat(document.getElementById('s-peso').value)||null,
-    altezza: parseFloat(document.getElementById('s-altezza').value)||null,
-    eta: parseInt(document.getElementById('s-eta').value)||null,
-    obiettivo: document.getElementById('s-obiettivo').value
-  };
-  localStorage.setItem('gymProfile', JSON.stringify(profile));
-  showToast('✅ Profilo salvato!');
-}
-
-function toggleNotif() {
-  const enabled = document.getElementById('notif-toggle').checked;
-  if (enabled && 'Notification' in window) {
-    Notification.requestPermission().then(p=>{
-      if (p!=='granted') { document.getElementById('notif-toggle').checked=false; showToast('Notifiche non autorizzate'); }
-      else showToast('✅ Notifiche abilitate');
+// ─── ADD TO PIANO MODAL ───────────────────────────────────────────────────────
+function openAddToPianoModal(rid) {
+  const recipe = getRecipe(rid);
+  if (!recipe) return;
+  const weekDays = getWeekDays();
+  const plan = getPlan();
+  let html = `<div class="modal-content" style="padding:16px;max-height:80vh;overflow-y:auto;pointer-events:all;" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Aggiungi al piano</div>
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:16px;">${recipe.emoji} ${esc(recipe.name)}</div>`;
+  weekDays.forEach((day, idx) => {
+    const dk = dayKey(day);
+    const dp = plan[dk] || {};
+    const today = isToday(day);
+    html += `<div style="margin-bottom:12px;">
+      <div style="font-size:.8rem;font-weight:700;color:${today?'var(--primary)':'var(--muted)'};margin-bottom:6px;">${DAYS_IT[idx]} ${day.getDate()}${today?' (oggi)':''}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">`;
+    SLOTS.forEach(slot => {
+      const occupied = dp[slot];
+      html += `<button onclick="assignMeal('${dk}','${slot}','${rid}')" 
+        style="padding:6px 12px;border-radius:8px;font-size:.75rem;font-weight:600;border:1px solid ${occupied?'var(--danger)':'var(--border)'};background:${occupied?'#e74c3c22':'var(--inner)'};color:${occupied?'var(--danger)':'var(--text)'};min-height:36px;">
+        ${SLOT_LABELS[slot]}${occupied?' ↻':''}
+      </button>`;
     });
+    html += `</div></div>`;
+  });
+  html += `<button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:8px;">Chiudi</button></div>`;
+  showModal(html);
+}
+
+
+// ─── SPESA ───────────────────────────────────────────────────────────────────
+const INGREDIENT_CATEGORIES = {
+  'proteine': ['pollo','tacchino','manzo','salmone','tonno','merluzzo','gamberetti','uov','fesa','bistecca','burger','cotoletta'],
+  'carboidrati': ['riso','pasta','pane','avena','quinoa','patate','granola','piadina','farina','lenticchie','ceci','fiocchi','pan grattato'],
+  'verdure': ['broccoli','spinaci','zucchine','peperone','peperoni','pomodori','pomodorino','carote','sedano','cipolla','rucola','lattuga','funghi','cetriolo','mais','insalata'],
+  'frutta': ['banana','fragole','frutti di bosco','avocado','limone','mela','uvetta','lamponi','mirtilli'],
+  'latticini': ['latte','yogurt','ricotta','feta','parmigiano','grana','mozzarella','formaggio','burro'],
+  'condimenti': ['olio','aceto','miele','sale','pepe','paprika','curcuma','cannella','origano','rosmarino','timo','basilico','prezzemolo','aglio','tahini','burro di arachidi','vino','brodo']
+};
+const CAT_LABELS = {
+  'proteine':'🥩 Proteine',
+  'carboidrati':'🌾 Carboidrati',
+  'verdure':'🥦 Verdure',
+  'frutta':'🍎 Frutta',
+  'latticini':'🧀 Latticini',
+  'condimenti':'🧴 Condimenti',
+  'altro':'📦 Altro'
+};
+const PANTRY = ['Olio EVO','Sale','Pepe','Aglio','Cipolla','Olio di cocco','Aceto balsamico','Salsa di pomodoro','Brodo vegetale','Spezie miste'];
+
+function categorizIngredient(name) {
+  const n = name.toLowerCase();
+  for (const [cat, keywords] of Object.entries(INGREDIENT_CATEGORIES)) {
+    if (keywords.some(k => n.includes(k))) return cat;
   }
+  return 'altro';
 }
 
-function saveNotifDays() {
-  const days = [0,1,2,3,4,5,6].filter(d=>document.getElementById('nd-'+d)?.checked);
-  localStorage.setItem('gymNotifDays', JSON.stringify(days));
+function aggregateIngredients() {
+  const plan = getPlan();
+  const map = {};
+  Object.values(plan).forEach(dp => {
+    SLOTS.forEach(slot => {
+      const rid = dp[slot];
+      if (!rid) return;
+      const r = getRecipe(rid);
+      if (!r) return;
+      r.ingredients.forEach(ing => {
+        const key = ing.name.toLowerCase().trim();
+        if (!map[key]) map[key] = {name:ing.name, amount:0, unit:ing.unit, cat:categorizIngredient(ing.name)};
+        if (map[key].unit === ing.unit) {
+          map[key].amount += ing.amount;
+        }
+      });
+    });
+  });
+  const grouped = {};
+  Object.values(map).forEach(item => {
+    if (!grouped[item.cat]) grouped[item.cat] = [];
+    grouped[item.cat].push(item);
+  });
+  return grouped;
 }
 
-function saveNotifTime() {
-  localStorage.setItem('gymNotifTime', document.getElementById('notif-time').value);
+function renderSpesa() {
+  const content = document.getElementById('content');
+  const grouped = aggregateIngredients();
+  const checked = getGroceryChecked();
+  const allItems = Object.values(grouped).flat();
+  const checkedCount = allItems.filter(i => checked[i.name.toLowerCase()]).length;
+
+  let html = `<div class="page" style="padding:16px 0 8px;">
+  <div style="padding:0 16px 12px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:1.3rem;font-weight:800;">🛒 Lista della Spesa</div>
+      <div style="font-size:.8rem;color:var(--muted);">Dal piano settimanale</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost" onclick="clearGroceryChecked()" style="padding:8px 12px;font-size:.78rem;">🔄 Reset</button>
+    </div>
+  </div>`;
+
+  if (allItems.length > 0) {
+    html += `<div style="padding:0 16px 16px;">
+      <div class="progress-bar-wrap" style="margin-bottom:6px;"><div class="progress-bar-fill" style="width:${checkedCount/allItems.length*100}%;"></div></div>
+      <div style="font-size:.75rem;color:var(--muted);">${checkedCount} / ${allItems.length} acquistati</div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-ghost" onclick="selectAllGrocery()" style="flex:1;font-size:.78rem;padding:8px;">✅ Seleziona tutti</button>
+        <button class="btn btn-ghost" onclick="clearGroceryChecked()" style="flex:1;font-size:.78rem;padding:8px;">🔄 Azzera</button>
+      </div>
+    </div>`;
+
+    const catOrder = ['proteine','carboidrati','verdure','frutta','latticini','condimenti','altro'];
+    catOrder.forEach(cat => {
+      const items = grouped[cat];
+      if (!items || !items.length) return;
+      html += `<div class="grocery-section" style="padding:0 16px;">
+        <div style="font-size:.9rem;font-weight:700;color:var(--muted);margin-bottom:8px;">${CAT_LABELS[cat]||cat}</div>`;
+      items.forEach(item => {
+        const ck = item.name.toLowerCase();
+        const isChecked = !!checked[ck];
+        html += `<div class="grocery-item ${isChecked?'checked':''}" onclick="toggleGroceryItem('${ck.replace(/'/g,"\\'")}')">
+          <input type="checkbox" ${isChecked?'checked':''} onchange="toggleGroceryItem('${ck.replace(/'/g,"\\'")}');event.stopPropagation()">
+          <label style="flex:1;cursor:pointer;">${esc(item.name)}</label>
+          <span style="font-size:.8rem;color:var(--primary);font-weight:700;">${item.amount > 0 ? item.amount+' '+item.unit : ''}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+  } else {
+    html += `<div style="text-align:center;padding:48px 16px;color:var(--muted);">
+      <div style="font-size:3rem;margin-bottom:12px;">🛒</div>
+      <div>Nessuna ricetta nel piano settimanale.<br>Vai al Piano e aggiungi delle ricette!</div>
+    </div>`;
+  }
+
+  // Sempre in dispensa
+  html += `<div style="padding:16px;">
+    <div style="font-size:.95rem;font-weight:700;margin-bottom:12px;">🏠 Sempre in dispensa</div>`;
+  PANTRY.forEach(item => {
+    html += `<div class="pantry-item">${item}</div>`;
+  });
+  html += `</div></div>`;
+  content.innerHTML = html;
+}
+
+function toggleGroceryItem(key) {
+  const checked = getGroceryChecked();
+  checked[key] = !checked[key];
+  saveGroceryChecked(checked);
+  renderSpesa();
+}
+function clearGroceryChecked() {
+  saveGroceryChecked({});
+  renderSpesa();
+}
+function selectAllGrocery() {
+  const grouped = aggregateIngredients();
+  const checked = {};
+  Object.values(grouped).flat().forEach(item => { checked[item.name.toLowerCase()] = true; });
+  saveGroceryChecked(checked);
+  renderSpesa();
+}
+
+// ─── PREFERITI ────────────────────────────────────────────────────────────────
+function renderPreferiti() {
+  const content = document.getElementById('content');
+  const favIds = getFavorites();
+  const favRecipes = RECIPES.filter(r => favIds.includes(r.id));
+
+  let html = `<div class="page" style="padding:16px 0 8px;">
+  <div style="padding:0 16px 16px;font-size:1.3rem;font-weight:800;">❤️ Preferiti</div>`;
+
+  if (!favRecipes.length) {
+    html += `<div style="text-align:center;padding:48px 16px;color:var(--muted);">
+      <div style="font-size:3rem;margin-bottom:12px;">🤍</div>
+      <div style="font-size:.95rem;">Nessun preferito ancora.<br>Tocca ❤️ su una ricetta per salvarla.</div>
+    </div>`;
+  } else {
+    html += `<div class="recipe-grid">`;
+    favRecipes.forEach(r => {
+      html += `<div class="recipe-card" onclick="openRecipeDetail('${r.id}')">
+        <button class="fav-btn" data-id="${r.id}" onclick="toggleFavorite('${r.id}',event)">❤️</button>
+        <div class="emoji">${r.emoji}</div>
+        <div class="r-name">${esc(r.name)}</div>
+        <div class="r-meta">⏱ ${r.prepTime+r.cookTime} min</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="r-cal">${r.calories} kcal</div>
+          <span class="diff-badge diff-${r.difficulty}">${r.difficulty}</span>
+        </div>
+        <div style="font-size:.68rem;padding:2px 6px;border-radius:8px;color:#fff;background:${CAT_COLORS[r.category]};align-self:flex-start;">${r.category}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  content.innerHTML = html;
+}
+
+
+// ─── IMPOSTAZIONI ─────────────────────────────────────────────────────────────
+function calcTDEE() {
+  const p = getProfile();
+  const w = parseFloat(p.weight)||70, h = parseFloat(p.height)||175, a = parseFloat(p.age)||30;
+  // Mifflin-St Jeor (assuming male for simplicity; user can adjust)
+  const bmr = 10*w + 6.25*h - 5*a + 5; // male formula
+  const activity = 1.55; // moderately active
+  let tdee = Math.round(bmr * activity);
+  if (p.goal === 'dimagrimento') tdee -= 300;
+  if (p.goal === 'massa') tdee += 300;
+  return tdee;
+}
+
+function renderImpostazioni() {
+  const content = document.getElementById('content');
+  const p = getProfile();
+  const theme = getTheme();
+  const tdee = calcTDEE();
+
+  let html = `<div class="page" style="padding:16px;">
+  <div style="font-size:1.3rem;font-weight:800;margin-bottom:20px;">⚙️ Impostazioni</div>
+
+  <!-- PROFILO -->
+  <div style="font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);">👤 Profilo</div>
+  <div class="card" style="padding:16px;margin-bottom:20px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">Nome</div>
+        <input class="input-field" id="prof-name" type="text" placeholder="Il tuo nome" value="${esc(p.name||'')}" onchange="saveProfileField('name',this.value)">
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">Età</div>
+        <input class="input-field" id="prof-age" type="number" min="10" max="100" value="${p.age}" onchange="saveProfileField('age',+this.value)">
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">Peso (kg)</div>
+        <input class="input-field" id="prof-weight" type="number" min="30" max="250" step="0.1" value="${p.weight}" onchange="saveProfileField('weight',+this.value)">
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">Altezza (cm)</div>
+        <input class="input-field" id="prof-height" type="number" min="100" max="250" value="${p.height}" onchange="saveProfileField('height',+this.value)">
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">Obiettivo</div>
+      <select class="input-field" onchange="saveProfileField('goal',this.value)">
+        <option value="dimagrimento" ${p.goal==='dimagrimento'?'selected':''}>💪 Dimagrimento</option>
+        <option value="mantenimento" ${p.goal==='mantenimento'?'selected':''}>⚖️ Mantenimento</option>
+        <option value="massa" ${p.goal==='massa'?'selected':''}>🏋️ Aumento massa</option>
+      </select>
+    </div>
+    <div class="card2" style="padding:14px;margin-top:14px;text-align:center;border-radius:var(--radius);">
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">Fabbisogno calorico stimato</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="tdee-display">${tdee}</div>
+      <div style="font-size:.75rem;color:var(--muted);">kcal / giorno</div>
+    </div>
+  </div>
+
+  <!-- DIETA -->
+  <div style="font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);">🥗 Preferenze Dieta</div>
+  <div class="card" style="padding:16px;margin-bottom:20px;">
+    <div class="settings-row">
+      <div><div class="settings-label">Senza glutine</div></div>
+      <label class="toggle"><input type="checkbox" ${p.gluten?'checked':''} onchange="saveProfileField('gluten',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-label">Vegetariano</div></div>
+      <label class="toggle"><input type="checkbox" ${p.vegetarian?'checked':''} onchange="saveProfileField('vegetarian',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-label">Vegano</div></div>
+      <label class="toggle"><input type="checkbox" ${p.vegan?'checked':''} onchange="saveProfileField('vegan',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="settings-row" style="border-bottom:none;">
+      <div><div class="settings-label">Senza lattosio</div></div>
+      <label class="toggle"><input type="checkbox" ${p.lactose?'checked':''} onchange="saveProfileField('lactose',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <!-- TEMA -->
+  <div style="font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);">🎨 Aspetto</div>
+  <div class="card" style="padding:16px;margin-bottom:20px;">
+    <div class="settings-row" style="border-bottom:none;">
+      <div><div class="settings-label">Tema chiaro</div><div class="settings-sub">Attiva la modalità light</div></div>
+      <label class="toggle"><input type="checkbox" id="theme-toggle" ${theme==='light'?'checked':''} onchange="toggleTheme()"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <!-- PIN -->
+  <div style="font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);">🔐 Sicurezza</div>
+  <div class="card" style="padding:16px;margin-bottom:20px;">
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:12px;">Cambia il PIN di accesso (4 cifre)</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <input class="input-field" id="pin-cur" type="password" maxlength="4" inputmode="numeric" placeholder="PIN attuale">
+      <input class="input-field" id="pin-new" type="password" maxlength="4" inputmode="numeric" placeholder="Nuovo PIN">
+      <input class="input-field" id="pin-con" type="password" maxlength="4" inputmode="numeric" placeholder="Conferma nuovo PIN">
+      <button class="btn btn-primary" onclick="changePin()">Aggiorna PIN</button>
+      <div id="pin-change-msg" style="font-size:.8rem;text-align:center;"></div>
+    </div>
+  </div>
+
+  <!-- BACKUP -->
+  <div style="font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--primary);">💾 Backup Dati</div>
+  <div class="card" style="padding:16px;margin-bottom:20px;">
+    <div style="display:flex;gap:12px;">
+      <button class="btn btn-secondary" style="flex:1;" onclick="exportData()">📤 Esporta JSON</button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('import-file').click()">📥 Importa JSON</button>
+      <input id="import-file" type="file" accept=".json" style="display:none;" onchange="importData(this)">
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="card2" style="padding:16px;text-align:center;border-radius:var(--radius);margin-bottom:8px;">
+    <div style="font-size:1.5rem;margin-bottom:8px;">🍽️</div>
+    <div style="font-weight:700;font-size:1rem;">DietApp v1.0</div>
+    <div style="font-size:.8rem;color:var(--muted);margin-top:4px;">La tua app dieta personale<br>Tutti i dati salvati localmente</div>
+  </div>
+
+  </div>`;
+  content.innerHTML = html;
+}
+
+function saveProfileField(field, value) {
+  const p = getProfile();
+  p[field] = value;
+  saveProfile(p);
+  const tdeeEl = document.getElementById('tdee-display');
+  if (tdeeEl) tdeeEl.textContent = calcTDEE();
+}
+
+function changePin() {
+  const cur = document.getElementById('pin-cur').value;
+  const newp = document.getElementById('pin-new').value;
+  const con = document.getElementById('pin-con').value;
+  const msg = document.getElementById('pin-change-msg');
+  const stored = localStorage.getItem('dietPin') || '0406';
+  if (cur !== stored) { msg.style.color='var(--danger)'; msg.textContent='PIN attuale errato.'; return; }
+  if (!/^\d{4}$/.test(newp)) { msg.style.color='var(--danger)'; msg.textContent='Il PIN deve essere di 4 cifre.'; return; }
+  if (newp !== con) { msg.style.color='var(--danger)'; msg.textContent='I PIN non coincidono.'; return; }
+  localStorage.setItem('dietPin', newp);
+  msg.style.color='var(--success)'; msg.textContent='PIN aggiornato con successo!';
+  ['pin-cur','pin-new','pin-con'].forEach(id => document.getElementById(id).value='');
 }
 
 function exportData() {
-  const data = {};
-  const keys = ['gymPRs','gymHistory','gymWeight','spesaChecked_estate','spesaChecked_autunno','spesaChecked_inverno','spesaChecked_primavera','spesaChecked_pantry','schedaStartDate','schedaCurrent','gymProfile','gymWaterToday','gymTheme','gymNotifDays','gymNotifTime','gymDietSeason','gymSpesaSeason','gymPin'];
-  keys.forEach(k => { const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); });
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
+  const data = {
+    plan: loadData('dietPlan',{}),
+    favorites: loadData('dietFavorites',[]),
+    profile: loadData('dietProfile',{}),
+    groceryChecked: loadData('groceryChecked',{})
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const a = document.createElement('a');
-  a.href=url; a.download='gym-backup-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click(); URL.revokeObjectURL(url);
-  showToast('✅ Backup esportato!');
+  a.href = URL.createObjectURL(blob);
+  a.download = `dietapp-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
 }
 
-function importData(e) {
-  const file = e.target.files[0];
+function importData(input) {
+  const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = (e) => {
     try {
-      const data = JSON.parse(ev.target.result);
-      Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
-      showToast('✅ Dati importati! Ricarico...');
-      setTimeout(()=>location.reload(), 1500);
-    } catch { showToast('❌ File non valido'); }
+      const data = JSON.parse(e.target.result);
+      if (data.plan) saveData('dietPlan', data.plan);
+      if (data.favorites) saveData('dietFavorites', data.favorites);
+      if (data.profile) saveData('dietProfile', data.profile);
+      if (data.groceryChecked) saveData('groceryChecked', data.groceryChecked);
+      alert('Dati importati con successo!');
+      renderImpostazioni();
+    } catch { alert('File non valido.'); }
   };
   reader.readAsText(file);
 }
 
-function changePin() {
-  const current = document.getElementById('pin-current').value;
-  const newPin = document.getElementById('pin-new').value;
-  const confirm = document.getElementById('pin-confirm').value;
-  if (current !== getPin()) { showToast('❌ PIN attuale errato'); return; }
-  if (!/^\d{4}$/.test(newPin)) { showToast('❌ Il PIN deve essere 4 cifre'); return; }
-  if (newPin !== confirm) { showToast('❌ I PIN non coincidono'); return; }
-  localStorage.setItem('gymPin', newPin);
-  document.getElementById('pin-current').value='';
-  document.getElementById('pin-new').value='';
-  document.getElementById('pin-confirm').value='';
-  showToast('✅ PIN aggiornato!');
+
+// ─── MODAL SYSTEM ─────────────────────────────────────────────────────────────
+function showModal(html) {
+  const overlay = document.getElementById('modal-overlay');
+  const container = document.getElementById('modal-container');
+  overlay.style.display = 'block';
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+  container.style.justifyContent = 'flex-end';
+  container.innerHTML = html;
+  // Scroll to top of full-modal
+  setTimeout(() => {
+    const fm = container.querySelector('.full-modal');
+    if (fm) { fm.scrollTop = 0; container.style.justifyContent='flex-start'; }
+  }, 10);
 }
 
-// ===================== TOAST =====================
-let toastTimer = null;
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 3000);
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  document.getElementById('modal-container').style.display = 'none';
+  document.getElementById('modal-container').innerHTML = '';
 }
 
-// ===================== SERVICE WORKER =====================
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/gymtracker/sw.js').catch(()=>{});
+// Close modal on back gesture / escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function initApp() {
+  applyTheme();
+  showTab('piano');
+  // register SW
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/gymtracker/sw.js').catch(()=>{});
+  }
 }
+
+// Boot
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme();
+  setupPin();
+});
+
 </script>
 </body>
 </html>
