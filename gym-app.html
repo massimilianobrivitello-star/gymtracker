@@ -1016,6 +1016,7 @@ function renderPiano() {
     html += `<div style="padding:0 16px 16px;">
       <div class="card" style="padding:16px;">
         <div style="font-size:1rem;font-weight:700;margin-bottom:12px;">Dettaglio giornata</div>
+        ${(()=>{ const target=calcTDEE(); const mt=calcMacroTarget(); const pct=Math.min(Math.round(totalCal/target*100),120); const color=pct<80?'var(--danger)':pct<=110?'var(--success)':'var(--warning)'; const macroBar=(label,val,tgt,col)=>`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px;"><span style="color:var(--muted);">${label}</span><span style="color:${col};font-weight:700;">${val}g / ${tgt}g</span></div><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.min(Math.round(val/tgt*100),100)}%;background:${col};"></div></div></div>`; return totalCal>0?`<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;"><span style="color:var(--muted);">🔥 Kcal</span><span style="color:${color};font-weight:700;">${totalCal} / ${target} kcal (${pct}%)</span></div><div class="progress-bar-wrap" style="margin-bottom:12px;"><div class="progress-bar-fill" style="width:${Math.min(pct,100)}%;background:${color};"></div></div>${macroBar('💪 Proteine',macros.protein,mt.protein,'#FF6B35')}${macroBar('⚡ Carboidrati',macros.carbs,mt.carbs,'#4ECDC4')}${macroBar('🫒 Grassi',macros.fat,mt.fat,'#9B59B6')}</div>`:``; })()}
         <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
           <div style="text-align:center;flex:1;">
             <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">${totalCal}</div>
@@ -1082,16 +1083,70 @@ function removeMeal(dk, slot) {
   renderPiano();
 }
 
+function calcMacroTarget() {
+  const p = getProfile();
+  const w = parseFloat(p.weight) || 70;
+  const tdee = calcTDEE();
+  // Proteine: 2g/kg, grassi: 1g/kg, resto carboidrati
+  const protein = Math.round(w * 2);
+  const fat = Math.round(w * 1);
+  const carbs = Math.round((tdee - protein * 4 - fat * 9) / 4);
+  return { kcal: tdee, protein, carbs: Math.max(carbs, 50), fat };
+}
+
+function scoraRicetta(recipe, slotKcalTarget, remainingMacros) {
+  // Punteggio basato su kcal + distanza dai macro target residui per slot
+  const kcalScore = 1 - Math.min(Math.abs(recipe.calories - slotKcalTarget) / slotKcalTarget, 1);
+  const pScore = 1 - Math.min(Math.abs(recipe.macros.protein - remainingMacros.protein) / Math.max(remainingMacros.protein, 1), 1);
+  const cScore = 1 - Math.min(Math.abs(recipe.macros.carbs - remainingMacros.carbs) / Math.max(remainingMacros.carbs, 1), 1);
+  const fScore = 1 - Math.min(Math.abs(recipe.macros.fat - remainingMacros.fat) / Math.max(remainingMacros.fat, 1), 1);
+  // Peso: kcal 40%, proteine 30%, carbo 20%, grassi 10%
+  return kcalScore * 0.4 + pScore * 0.3 + cScore * 0.2 + fScore * 0.1;
+}
+
+function generaGiornoSmartRicette(target) {
+  const macroTarget = calcMacroTarget();
+  // Distribuzione kcal per slot
+  const pesi = { colazione: 0.25, pranzo: 0.35, cena: 0.30, snack: 0.10 };
+  const result = {};
+  const remaining = { ...macroTarget };
+
+  SLOTS.forEach(slot => {
+    const pool = RECIPES.filter(r => r.category === slot);
+    const slotKcal = macroTarget.kcal * pesi[slot];
+    const slotMacros = {
+      protein: Math.round(macroTarget.protein * pesi[slot]),
+      carbs:   Math.round(macroTarget.carbs * pesi[slot]),
+      fat:     Math.round(macroTarget.fat * pesi[slot])
+    };
+
+    // Calcola punteggio per ogni ricetta del pool
+    const scored = pool.map(r => ({
+      r,
+      score: scoraRicetta(r, slotKcal, slotMacros)
+    })).sort((a, b) => b.score - a.score);
+
+    // Prendi le top 3 e scegline una a caso per varietà
+    const top = scored.slice(0, Math.min(3, scored.length));
+    const chosen = top[Math.floor(Math.random() * top.length)].r;
+    result[slot] = chosen.id;
+
+    // Aggiorna i macro residui
+    remaining.protein -= chosen.macros.protein;
+    remaining.carbs   -= chosen.macros.carbs;
+    remaining.fat     -= chosen.macros.fat;
+    remaining.kcal    -= chosen.calories;
+  });
+
+  return result;
+}
+
 function generaSettimana() {
   const plan = getPlan();
   const weekDays = getWeekDays();
   weekDays.forEach(day => {
     const dk = dayKey(day);
-    plan[dk] = {};
-    SLOTS.forEach(slot => {
-      const pool = RECIPES.filter(r => r.category === slot);
-      plan[dk][slot] = pool[Math.floor(Math.random()*pool.length)].id;
-    });
+    plan[dk] = generaGiornoSmartRicette();
   });
   savePlan(plan);
   renderPiano();
@@ -1099,11 +1154,7 @@ function generaSettimana() {
 
 function generaGiorno(dk) {
   const plan = getPlan();
-  plan[dk] = {};
-  SLOTS.forEach(slot => {
-    const pool = RECIPES.filter(r => r.category === slot);
-    plan[dk][slot] = pool[Math.floor(Math.random()*pool.length)].id;
-  });
+  plan[dk] = generaGiornoSmartRicette();
   savePlan(plan);
   renderPiano();
 }
