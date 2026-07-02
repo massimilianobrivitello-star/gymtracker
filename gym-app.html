@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>💪 GymTracker</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0f0f1a;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  padding: 16px 20px;
+  text-align: center;
+  border-bottom: 2px solid #2196F3;
+  position: sticky; top: 0; z-index: 100;
+}
+header h1 { font-size: 1.4rem; color: #90CAF9; }
+header p { font-size: 0.75rem; color: #666; margin-top: 2px; }
+
+nav {
+  display: flex;
+  background: #12121f;
+  border-bottom: 1px solid #222;
+  overflow-x: auto;
+  position: sticky; top: 60px; z-index: 99;
+}
+nav button {
+  flex: 1; min-width: 80px;
+  padding: 12px 8px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+nav button.active { color: #2196F3; border-bottom-color: #2196F3; }
+
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
+
+.card {
+  background: #1e1e2e;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid #2a2a3e;
+}
+.card h2 { font-size: 1rem; color: #90CAF9; margin-bottom: 12px; }
+.card h3 { font-size: 0.9rem; color: #FF9800; margin-bottom: 8px; }
+
+.day-btn {
+  width: 100%; padding: 14px;
+  background: #16213e;
+  border: 1px solid #2196F3;
+  border-radius: 10px;
+  color: #90CAF9;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+  text-align: left;
+  transition: background 0.2s;
+}
+.day-btn:hover, .day-btn.selected { background: #1a3a5c; }
+.day-btn span { float: right; font-size: 0.8rem; color: #666; }
+
+.exercise-row {
+  background: #12121f;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-left: 3px solid #2196F3;
+}
+.exercise-name { font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #e0e0e0; }
+.exercise-meta { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
+.yt-btn {
+  padding: 4px 10px; background: #FF0000;
+  border-radius: 6px; color: #fff;
+  font-size: 0.7rem; font-weight: bold;
+  text-decoration: none; white-space: nowrap;
+  transition: background 0.2s;
+  display: inline-block;
+}
+.yt-btn:hover { background: #cc0000; }
+.input-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.input-row label { font-size: 0.75rem; color: #888; }
+.input-row input {
+  width: 70px; padding: 8px;
+  background: #1e1e2e; border: 1px solid #333;
+  border-radius: 6px; color: #fff;
+  font-size: 0.9rem; text-align: center;
+}
+.suggestion {
+  margin-top: 8px; padding: 6px 10px;
+  background: #1a3a1a; border-radius: 6px;
+  font-size: 0.75rem; color: #4CAF50;
+  display: none;
+}
+.suggestion.warn { background: #3a2a1a; color: #FF9800; }
+
+.btn-primary {
+  width: 100%; padding: 14px;
+  background: #2196F3; border: none;
+  border-radius: 10px; color: #fff;
+  font-size: 1rem; font-weight: bold;
+  cursor: pointer; margin-top: 8px;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #1565C0; }
+.btn-secondary {
+  width: 100%; padding: 12px;
+  background: #1e1e2e; border: 1px solid #444;
+  border-radius: 10px; color: #aaa;
+  font-size: 0.9rem; cursor: pointer; margin-top: 8px;
+}
+
+.badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 20px; font-size: 0.7rem;
+  font-weight: bold; margin-left: 6px;
+}
+.badge-push { background: #7b1fa2; color: #fff; }
+.badge-pull { background: #1565C0; color: #fff; }
+.badge-legs { background: #2e7d32; color: #fff; }
+
+.history-item {
+  background: #12121f; border-radius: 8px;
+  padding: 12px; margin-bottom: 8px;
+  border-left: 3px solid #FF9800;
+}
+.history-date { font-size: 0.75rem; color: #888; margin-bottom: 4px; }
+.history-content { font-size: 0.85rem; }
+
+.diet-meal {
+  background: #12121f; border-radius: 8px;
+  padding: 12px; margin-bottom: 8px;
+  border-left: 3px solid #4CAF50;
+}
+.diet-meal h4 { color: #4CAF50; font-size: 0.85rem; margin-bottom: 6px; }
+.diet-meal p { font-size: 0.82rem; color: #ccc; line-height: 1.5; }
+
+.progress-bar-wrap { background: #12121f; border-radius: 20px; height: 8px; margin: 6px 0; }
+.progress-bar { height: 8px; border-radius: 20px; background: #2196F3; transition: width 0.4s; }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat-box {
+  background: #12121f; border-radius: 10px;
+  padding: 12px; text-align: center;
+}
+.stat-box .val { font-size: 1.4rem; font-weight: bold; color: #90CAF9; }
+.stat-box .lbl { font-size: 0.7rem; color: #666; margin-top: 2px; }
+
+.toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50; color: #fff;
+  padding: 10px 20px; border-radius: 20px;
+  font-size: 0.85rem; z-index: 999;
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+.season-btn {
+  padding: 12px 8px;
+  background: #1e1e2e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  color: #888;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.season-btn.active {
+  background: #16213e;
+  border-color: #2196F3;
+  color: #90CAF9;
+}
+.diet-season { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* SCHEDA BANNER */
+#scheda-banner { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+#cambio-scheda-alert { animation: fadeIn 0.4s ease; }
+
+/* SPESA */
+.spesa-category { margin-bottom: 14px; }
+.spesa-category-title {
+  font-size: 0.8rem; font-weight: bold;
+  color: #FF9800; text-transform: uppercase;
+  letter-spacing: 0.05em; margin-bottom: 6px;
+  padding: 6px 0; border-bottom: 1px solid #2a2a3e;
+}
+.spesa-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; margin-bottom: 4px;
+  background: #12121f; border-radius: 8px;
+  cursor: pointer; transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.spesa-item:hover { background: #1a1a2e; }
+.spesa-item.checked {
+  background: #0d1a0d;
+  border-color: #2e7d32;
+  opacity: 0.65;
+}
+.spesa-item.checked .spesa-item-name { text-decoration: line-through; color: #555; }
+.spesa-checkbox {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid #444; background: #1e1e2e;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0; transition: all 0.2s;
+}
+.spesa-item.checked .spesa-checkbox { background: #2e7d32; border-color: #2e7d32; }
+.spesa-item-info { flex: 1; }
+.spesa-item-name { font-size: 0.88rem; color: #e0e0e0; }
+.spesa-item-qty  { font-size: 0.72rem; color: #888; margin-top: 1px; }
+.spesa-item-tag  {
+  font-size: 0.65rem; padding: 2px 7px;
+  border-radius: 20px; background: #1a3a1a;
+  color: #81C784; white-space: nowrap;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💪 GymTracker</h1>
+  <p id="header-date"></p>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('allenamento')">🏋️ Allena</button>
+  <button onclick="showPage('progressi')">📈 Progressi</button>
+  <button onclick="showPage('storico')">📋 Storico</button>
+  <button onclick="showPage('dieta')">🥗 Dieta</button>
+  <button onclick="showPage('spesa')">🛒 Spesa</button>
+</nav>
+
+<div id="toast" class="toast"></div>
+
+<!-- PAGE: ALLENAMENTO -->
+<div id="page-allenamento" class="page active">
+  <!-- Banner scheda attiva -->
+  <div id="scheda-banner" class="card" style="padding:12px 16px;margin-bottom:10px;border-left:4px solid #FF9800;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:0.7rem;color:#FF9800;font-weight:bold;text-transform:uppercase;">Scheda attiva</div>
+        <div id="scheda-label" style="font-size:1rem;color:#fff;font-weight:bold;margin-top:2px;">Scheda A</div>
+        <div id="scheda-weeks" style="font-size:0.72rem;color:#888;margin-top:2px;"></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.7rem;color:#888;">Settimana</div>
+        <div id="scheda-week-num" style="font-size:1.6rem;font-weight:bold;color:#90CAF9;line-height:1;">1</div>
+        <div style="font-size:0.65rem;color:#888;">di 8</div>
+      </div>
+    </div>
+    <div class="progress-bar-wrap" style="margin-top:8px;"><div class="progress-bar" id="scheda-progress-bar" style="background:#FF9800;width:12%;"></div></div>
+  </div>
+  <!-- Alert cambio scheda -->
+  <div id="cambio-scheda-alert" class="card" style="display:none;border:2px solid #FF9800;background:#2a1a00;padding:14px;">
+    <div style="font-size:1rem;font-weight:bold;color:#FF9800;margin-bottom:6px;">🔄 Tempo di cambiare scheda!</div>
+    <div style="font-size:0.82rem;color:#ccc;margin-bottom:10px;">Hai completato 8 settimane. Passa alla scheda successiva per continuare a progredire.</div>
+    <button onclick="cambiaScheda()" style="width:100%;padding:12px;background:#FF9800;border:none;border-radius:8px;color:#000;font-weight:bold;font-size:0.9rem;cursor:pointer;">✅ Inizia nuova scheda</button>
+  </div>
+  <div class="card">
+    <h2 id="scheda-day-title">Scegli il giorno di oggi</h2>
+    <button class="day-btn" id="btn-push" onclick="selectDay('push')">
+      🔴 Giorno A — PUSH
+      <span>Petto · Spalle · Tricipiti</span>
+    </button>
+    <button class="day-btn" id="btn-pull" onclick="selectDay('pull')">
+      🔵 Giorno B — PULL
+      <span>Schiena · Bicipiti</span>
+    </button>
+    <button class="day-btn" id="btn-legs" onclick="selectDay('legs')">
+      🟢 Giorno C — LEGS + Core
+      <span>Gambe · Addome</span>
+    </button>
+  </div>
+  <div id="workout-form" style="display:none;">
+    <div class="card">
+      <h2 id="workout-title"></h2>
+      <div id="exercises-list"></div>
+      <button class="btn-primary" onclick="saveWorkout()">💾 Salva Allenamento</button>
+      <button class="btn-secondary" onclick="cancelWorkout()">✕ Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: PROGRESSI -->
+<div id="page-progressi" class="page">
+  <div class="card">
+    <h2>📊 Le tue statistiche</h2>
+    <div class="stat-grid" id="stats-grid">
+      <div class="stat-box"><div class="val" id="stat-sessions">0</div><div class="lbl">Sessioni totali</div></div>
+      <div class="stat-box"><div class="val" id="stat-week">0</div><div class="lbl">Questa settimana</div></div>
+      <div class="stat-box"><div class="val" id="stat-streak">0</div><div class="lbl">Streak giorni</div></div>
+      <div class="stat-box"><div class="val" id="stat-prs">0</div><div class="lbl">Personal Record</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>🏆 Massimali per esercizio</h2>
+    <div id="pr-list"></div>
+  </div>
+  <div class="card">
+    <h2>📅 Prossima sessione consigliata</h2>
+    <div id="next-session" style="padding:10px;color:#90CAF9;font-size:0.9rem;"></div>
+  </div>
+</div>
+
+<!-- PAGE: STORICO -->
+<div id="page-storico" class="page">
+  <div class="card">
+    <h2>📋 Ultimi allenamenti</h2>
+    <div id="history-list"><p style="color:#666;font-size:0.85rem;">Nessun allenamento registrato.</p></div>
+  </div>
+  <button class="btn-secondary" onclick="clearHistory()" style="margin:0 16px;width:calc(100% - 32px);">🗑️ Cancella tutto lo storico</button>
+</div>
+
+<!-- PAGE: DIETA -->
+<div id="page-dieta" class="page">
+
+  <!-- Selettore stagione -->
+  <div class="card" style="padding:12px;">
+    <h2 style="margin-bottom:10px;">🗓️ Scegli il periodo</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="season-selector">
+      <button class="season-btn active" onclick="showSeason('estate')"   id="btn-estate">☀️ Estate</button>
+      <button class="season-btn"        onclick="showSeason('autunno')"  id="btn-autunno">🍂 Autunno</button>
+      <button class="season-btn"        onclick="showSeason('inverno')"  id="btn-inverno">❄️ Inverno</button>
+      <button class="season-btn"        onclick="showSeason('primavera')" id="btn-primavera">🌸 Primavera</button>
+    </div>
+  </div>
+
+  <!-- ESTATE -->
+  <div id="diet-estate" class="diet-season">
+    <div class="card">
+      <h2>☀️ Dieta Estate — Definizione &amp; Leggerezza</h2>
+      <p style="font-size:0.78rem;color:#FF9800;margin-bottom:12px;">🎯 Obiettivo: mantenere massa, ridurre grasso, restare idratati. Calorie leggermente ridotte.</p>
+      <div class="diet-meal" style="border-left-color:#FF9800;">
+        <h4 style="color:#FF9800;">🌅 Colazione</h4>
+        <p><b>Op.1:</b> 200g yogurt greco + fragole/anguria + 40g granola + 1 cucchiaio miele<br>
+        <b>Op.2:</b> 3 uova strapazzate + 1 fetta pane integrale + succo d'arancia fresco<br>
+        <b>Op.3:</b> Smoothie: latte di mandorla + banana + spinaci + proteine in polvere</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF9800;">
+        <h4 style="color:#FF9800;">🕛 Pranzo</h4>
+        <p><b>Op.1:</b> 130g riso basmati + 180g tonno al naturale + pomodorini + cetriolo + olio EVO<br>
+        <b>Op.2:</b> Insalata grande: 200g petto pollo grigliato + lattuga + mais + avocado + limone<br>
+        <b>Op.3:</b> 130g pasta fredda + tonno + olive + capperi + basilico</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF9800;">
+        <h4 style="color:#FF9800;">🍉 Spuntino</h4>
+        <p>200g anguria o melone + 20g mandorle<br>
+        <i>oppure</i> frullato proteico con acqua di cocco</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF9800;">
+        <h4 style="color:#FF9800;">🌙 Cena</h4>
+        <p><b>Op.1:</b> 200g pesce spada/salmone alla griglia + insalata mista + 100g patate al forno<br>
+        <b>Op.2:</b> 200g pollo alle erbe aromatiche + zucchine grigliate + pomodori<br>
+        <b>Op.3:</b> 4 uova in camicia + 200g verdure grigliate + 1 fetta pane integrale</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF9800;">
+        <h4 style="color:#FF9800;">💧 Idratazione estate</h4>
+        <p>Bevi <b>3–3.5L</b> al giorno. Aggiungi elettroliti (sale rosa, limone) se sudi molto.<br>
+        Evita bibite zuccherate — sostituiscile con acqua tonica o acqua frizzante + limone.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTUNNO -->
+  <div id="diet-autunno" class="diet-season" style="display:none;">
+    <div class="card">
+      <h2>🍂 Dieta Autunno — Transizione &amp; Ricostruzione</h2>
+      <p style="font-size:0.78rem;color:#FF7043;margin-bottom:12px;">🎯 Obiettivo: tornare in bulk moderato dopo l'estate. Aumenta carboidrati e calorie totali.</p>
+      <div class="diet-meal" style="border-left-color:#FF7043;">
+        <h4 style="color:#FF7043;">🌅 Colazione</h4>
+        <p><b>Op.1:</b> 80g avena cotta nel latte + 1 mela + cannella + 30g noci + miele<br>
+        <b>Op.2:</b> 4 uova strapazzate + 2 fette pane integrale tostato + 1 kiwi<br>
+        <b>Op.3:</b> Pancakes proteici (2 uova + 50g avena + banana schiacciata) + sciroppo d'acero</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF7043;">
+        <h4 style="color:#FF7043;">🕛 Pranzo</h4>
+        <p><b>Op.1:</b> 160g riso + 200g pollo al forno con paprika + broccoli al vapore<br>
+        <b>Op.2:</b> 160g pasta integrale + ragù di tacchino (200g macinato) + parmigiano<br>
+        <b>Op.3:</b> Zuppa di lenticchie (200g) + 1 fetta pane di segale + 150g tacchino</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF7043;">
+        <h4 style="color:#FF7043;">🍎 Spuntino</h4>
+        <p>1 mela o pera + 30g mandorle/noci<br>
+        <i>oppure</i> 200g yogurt greco + 1 cucchiaio burro d'arachidi</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF7043;">
+        <h4 style="color:#FF7043;">🌙 Cena</h4>
+        <p><b>Op.1:</b> 220g salmone al forno + 200g patate dolci al forno + fagiolini<br>
+        <b>Op.2:</b> 220g bistecca di manzo + 200g riso + verdure saltate<br>
+        <b>Op.3:</b> Zuppa di ceci e spinaci (300g) + 150g petto pollo + 1 fetta pane</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#FF7043;">
+        <h4 style="color:#FF7043;">🌛 Spuntino serale</h4>
+        <p>200g ricotta + cacao amaro + miele + 30g noci</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVERNO -->
+  <div id="diet-inverno" class="diet-season" style="display:none;">
+    <div class="card">
+      <h2>❄️ Dieta Inverno — Bulk &amp; Forza Massima</h2>
+      <p style="font-size:0.78rem;color:#90CAF9;margin-bottom:12px;">🎯 Obiettivo: massima crescita muscolare. Surplus calorico di 300–400 kcal. Carboidrati alti.</p>
+      <div class="diet-meal" style="border-left-color:#90CAF9;">
+        <h4 style="color:#90CAF9;">🌅 Colazione</h4>
+        <p><b>Op.1:</b> 100g avena + latte intero + 2 uova + banana + 30g burro arachidi + miele<br>
+        <b>Op.2:</b> 4 uova + 3 fette pane integrale tostato + 1 avocado + succo arancia<br>
+        <b>Op.3:</b> French toast proteico (3 uova + 3 fette pane) + yogurt greco + frutti di bosco</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#90CAF9;">
+        <h4 style="color:#90CAF9;">🕛 Pranzo</h4>
+        <p><b>Op.1:</b> 180g riso + 250g pollo al forno con spezie + 100g fagioli neri<br>
+        <b>Op.2:</b> 180g pasta + 200g manzo macinato + salsa pomodoro + parmigiano<br>
+        <b>Op.3:</b> 200g risotto con pollo e funghi (veloce in padella)</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#90CAF9;">
+        <h4 style="color:#90CAF9;">🍫 Spuntino</h4>
+        <p>1 banana + 40g noci/arachidi + 1 quadratino cioccolato fondente 80%<br>
+        <i>oppure</i> frullato: latte intero + banana + 30g avena + 30g proteine whey</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#90CAF9;">
+        <h4 style="color:#90CAF9;">🌙 Cena</h4>
+        <p><b>Op.1:</b> 250g salmone + 250g patate al forno + broccoli + olio EVO<br>
+        <b>Op.2:</b> 250g bistecca manzo/vitello + 200g riso integrale + insalata<br>
+        <b>Op.3:</b> Pasta e fagioli densa (200g pasta + 300g fagioli) + 150g tacchino</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#90CAF9;">
+        <h4 style="color:#90CAF9;">🌛 Spuntino serale</h4>
+        <p>250g ricotta intera + miele + 30g noci + cacao amaro<br>
+        <i>oppure</i> 2 uova sode + 1 fetta pane integrale</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIMAVERA -->
+  <div id="diet-primavera" class="diet-season" style="display:none;">
+    <div class="card">
+      <h2>🌸 Dieta Primavera — Cut &amp; Definizione</h2>
+      <p style="font-size:0.78rem;color:#81C784;margin-bottom:12px;">🎯 Obiettivo: eliminare il grasso guadagnato in inverno, mantenere la massa. Deficit calorico moderato.</p>
+      <div class="diet-meal" style="border-left-color:#81C784;">
+        <h4 style="color:#81C784;">🌅 Colazione</h4>
+        <p><b>Op.1:</b> 3 uova + albumi + 1 fetta pane integrale + frutta di stagione (fragole, kiwi)<br>
+        <b>Op.2:</b> 170g yogurt greco 0% + 50g avena + 1 cucchiaino miele + mirtilli<br>
+        <b>Op.3:</b> Smoothie verde: spinaci + banana + latte di mandorla + 25g proteine</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#81C784;">
+        <h4 style="color:#81C784;">🕛 Pranzo</h4>
+        <p><b>Op.1:</b> 120g riso basmati + 200g pollo grigliato + asparagi al vapore<br>
+        <b>Op.2:</b> Insalata proteica: 200g tonno + ceci 150g + radicchio + limone + olio EVO<br>
+        <b>Op.3:</b> 120g pasta integrale + gamberi saltati + zucchine + aglio</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#81C784;">
+        <h4 style="color:#81C784;">🍓 Spuntino</h4>
+        <p>200g fragole o frutti di bosco + 20g mandorle<br>
+        <i>oppure</i> 150g fiocchi di latte + 1 kiwi</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#81C784;">
+        <h4 style="color:#81C784;">🌙 Cena</h4>
+        <p><b>Op.1:</b> 200g pesce bianco al forno (merluzzo/branzino) + 200g verdure grigliate<br>
+        <b>Op.2:</b> 200g petto tacchino + insalata mista grande + 100g patate lesse<br>
+        <b>Op.3:</b> Frittata 4 albumi + 2 uova intere + spinaci + 100g riso</p>
+      </div>
+      <div class="diet-meal" style="border-left-color:#81C784;">
+        <h4 style="color:#81C784;">🌛 Spuntino serale</h4>
+        <p>200g yogurt greco 0% + cannella + 1 cucchiaino miele<br>
+        <i>oppure</i> 150g ricotta magra + cacao amaro</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regole comuni -->
+  <div class="card">
+    <h2>💧 Regole valide tutto l'anno</h2>
+    <p style="font-size:0.82rem;color:#ccc;line-height:1.8;">
+      ✅ Proteine: <b>2g × kg</b> di peso corporeo ogni giorno<br>
+      ✅ Giorni di allenamento: mangia di più (+200 kcal)<br>
+      ✅ Non saltare i carboidrati — sono benzina per i muscoli<br>
+      ✅ Costanza > perfezione — 1 sgarro non rovina nulla<br>
+      ✅ Dormi 7–8 ore — è lì che cresci davvero<br>
+      ✅ <b>Estate/Primavera:</b> deficit 200–300 kcal | <b>Inverno/Autunno:</b> surplus 200–400 kcal
+    </p>
+  </div>
+
+</div>
+
+<!-- PAGE: SPESA -->
+<div id="page-spesa" class="page">
+
+  <!-- Filtro stagione -->
+  <div class="card" style="padding:12px;">
+    <h2 style="margin-bottom:10px;">🛒 Lista della Spesa</h2>
+    <p style="font-size:0.78rem;color:#888;margin-bottom:10px;">Basata sulla tua dieta stagionale. Spunta quello che hai già.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="spesa-season-selector">
+      <button class="season-btn active" onclick="showSpesa('estate')"    id="spesa-btn-estate">☀️ Estate</button>
+      <button class="season-btn"        onclick="showSpesa('autunno')"   id="spesa-btn-autunno">🍂 Autunno</button>
+      <button class="season-btn"        onclick="showSpesa('inverno')"   id="spesa-btn-inverno">❄️ Inverno</button>
+      <button class="season-btn"        onclick="showSpesa('primavera')" id="spesa-btn-primavera">🌸 Primavera</button>
+    </div>
+  </div>
+
+  <!-- Barra progresso spesa -->
+  <div class="card" style="padding:12px 16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span style="font-size:0.82rem;color:#888;">Prodotti nel carrello</span>
+      <span id="spesa-counter" style="font-size:0.82rem;color:#90CAF9;font-weight:bold;">0 / 0</span>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="spesa-progress" style="width:0%;background:#4CAF50;"></div></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button onclick="checkAllSpesa()" style="flex:1;padding:9px;background:#1a3a1a;border:1px solid #4CAF50;border-radius:8px;color:#4CAF50;font-size:0.8rem;cursor:pointer;">✅ Seleziona tutto</button>
+      <button onclick="clearSpesa()"    style="flex:1;padding:9px;background:#1e1e2e;border:1px solid #444;border-radius:8px;color:#888;font-size:0.8rem;cursor:pointer;">🔄 Azzera</button>
+    </div>
+  </div>
+
+  <!-- Liste per stagione -->
+  <div id="spesa-estate"    class="spesa-list"></div>
+  <div id="spesa-autunno"   class="spesa-list" style="display:none;"></div>
+  <div id="spesa-inverno"   class="spesa-list" style="display:none;"></div>
+  <div id="spesa-primavera" class="spesa-list" style="display:none;"></div>
+
+  <!-- Prodotti sempre utili -->
+  <div class="card">
+    <h2 style="margin-bottom:10px;">📦 Sempre in dispensa</h2>
+    <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">Prodotti base da non far mai mancare</p>
+    <div id="spesa-base-list"></div>
+  </div>
+
+</div>
+
+<script>
+const WORKOUTS = {
+  // === SCHEDA A (settimane 1-8) ===
+  push: {
+    name: '🔴 PUSH — Petto, Spalle, Tricipiti',
+    badge: 'push', scheda: 'A',
+    restSec: 90,
+    exercises: [
+      { name: 'Panca piana con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'bench press panca piana' },
+      { name: 'Panca inclinata con manubri', sets: 3, reps: '10-12', targetReps: 12, ytName: 'panca inclinata manubri petto' },
+      { name: 'Shoulder press con manubri', sets: 4, reps: '10', targetReps: 10, ytName: 'shoulder press manubri spalle' },
+      { name: 'Alzate laterali', sets: 3, reps: '12-15', targetReps: 15, ytName: 'alzate laterali manubri spalle' },
+      { name: 'French press (EZ bar)', sets: 3, reps: '10-12', targetReps: 12, ytName: 'french press EZ bar tricipiti' },
+      { name: 'Pushdown ai cavi', sets: 3, reps: '12', targetReps: 12, ytName: 'pushdown cavi tricipiti' }
+    ]
+  },
+  pull: {
+    name: '🔵 PULL — Schiena, Bicipiti',
+    badge: 'pull', scheda: 'A',
+    restSec: 90,
+    exercises: [
+      { name: 'Trazioni / Lat machine', sets: 4, reps: '8-10', targetReps: 10, ytName: 'lat machine esecuzione schiena' },
+      { name: 'Rematore con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'rematore bilanciere schiena' },
+      { name: 'Pulley basso', sets: 3, reps: '10-12', targetReps: 12, ytName: 'pulley basso cavi schiena' },
+      { name: 'Face pull ai cavi', sets: 3, reps: '15', targetReps: 15, ytName: 'face pull cavi spalle posteriori' },
+      { name: 'Curl con bilanciere', sets: 3, reps: '10-12', targetReps: 12, ytName: 'curl bilanciere bicipiti' },
+      { name: 'Curl a martello', sets: 3, reps: '12', targetReps: 12, ytName: 'curl martello manubri bicipiti' }
+    ]
+  },
+  legs: {
+    name: '🟢 LEGS + Core — Gambe, Addome',
+    badge: 'legs', scheda: 'A',
+    restSec: 120,
+    exercises: [
+      { name: 'Squat con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'squat bilanciere tecnica gambe' },
+      { name: 'Leg press', sets: 3, reps: '10-12', targetReps: 12, ytName: 'leg press macchina gambe esecuzione' },
+      { name: 'Romanian deadlift', sets: 3, reps: '10', targetReps: 10, ytName: 'romanian deadlift stacco rumeno femorali' },
+      { name: 'Leg curl sdraiato', sets: 3, reps: '12', targetReps: 12, ytName: 'leg curl sdraiato femorali macchina' },
+      { name: 'Calf raises', sets: 4, reps: '15', targetReps: 15, ytName: 'calf raises polpacci macchina' },
+      { name: 'Plank (secondi)', sets: 3, reps: '45', targetReps: 45, ytName: 'plank core addome tecnica' },
+      { name: 'Crunch al cavo', sets: 3, reps: '15', targetReps: 15, ytName: 'crunch al cavo addominali' }
+    ]
+  },
+  // === SCHEDA B (settimane 9-16) ===
+  push_b: {
+    name: '🔴 PUSH B — Petto, Spalle, Tricipiti',
+    badge: 'push', scheda: 'B',
+    restSec: 90,
+    exercises: [
+      { name: 'Panca piana con manubri', sets: 4, reps: '8-10', targetReps: 10, ytName: 'panca piana manubri petto' },
+      { name: 'Dip alle parallele', sets: 3, reps: '8-12', targetReps: 12, ytName: 'dip parallele tricipiti petto' },
+      { name: 'Lento avanti con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'lento avanti bilanciere spalle' },
+      { name: 'Alzate frontali', sets: 3, reps: '12', targetReps: 12, ytName: 'alzate frontali manubri spalle anteriori' },
+      { name: 'Skull crusher', sets: 3, reps: '10-12', targetReps: 12, ytName: 'skull crusher tricipiti EZ bar' },
+      { name: 'Cavi incrociati (fly)', sets: 3, reps: '12-15', targetReps: 15, ytName: 'cavi incrociati fly petto' }
+    ]
+  },
+  pull_b: {
+    name: '🔵 PULL B — Schiena, Bicipiti',
+    badge: 'pull', scheda: 'B',
+    restSec: 90,
+    exercises: [
+      { name: 'Stacco da terra', sets: 4, reps: '6-8', targetReps: 8, ytName: 'stacco da terra deadlift tecnica' },
+      { name: 'Trazioni presa stretta', sets: 3, reps: '8-10', targetReps: 10, ytName: 'trazioni presa stretta schiena' },
+      { name: 'Rematore con manubrio', sets: 3, reps: '10-12', targetReps: 12, ytName: 'rematore manubrio singolo schiena' },
+      { name: 'Pull over con manubrio', sets: 3, reps: '12', targetReps: 12, ytName: 'pull over manubrio schiena petto' },
+      { name: 'Curl con manubri alternati', sets: 3, reps: '10-12', targetReps: 12, ytName: 'curl manubri alternati bicipiti' },
+      { name: 'Curl al cavo basso', sets: 3, reps: '12-15', targetReps: 15, ytName: 'curl cavo basso bicipiti isolamento' }
+    ]
+  },
+  legs_b: {
+    name: '🟢 LEGS B — Gambe, Addome',
+    badge: 'legs', scheda: 'B',
+    restSec: 120,
+    exercises: [
+      { name: 'Front squat', sets: 4, reps: '8-10', targetReps: 10, ytName: 'front squat quadricipiti tecnica' },
+      { name: 'Affondi con manubri', sets: 3, reps: '10-12', targetReps: 12, ytName: 'affondi manubri gambe lunges' },
+      { name: 'Leg extension', sets: 3, reps: '12-15', targetReps: 15, ytName: 'leg extension macchina quadricipiti' },
+      { name: 'Stacco sumo', sets: 3, reps: '10', targetReps: 10, ytName: 'stacco sumo femorali glutei' },
+      { name: 'Calf raises seduto', sets: 4, reps: '15-20', targetReps: 20, ytName: 'calf raises seduto polpacci soleus' },
+      { name: 'Crunch inverso', sets: 3, reps: '15', targetReps: 15, ytName: 'crunch inverso addominali bassi' },
+      { name: 'Russian twist', sets: 3, reps: '20', targetReps: 20, ytName: 'russian twist obliqui addome' }
+    ]
+  }
+};
+
+let currentDay = null;
+let timerInterval = null;
+let timerRunning = false;
+
+// ===== LOGICA SCHEDA (A/B ogni 8 settimane) =====
+const SCHEDA_START_KEY = 'schedaStartDate';
+const SCHEDA_CURRENT_KEY = 'schedaCurrent'; // 'A' o 'B'
+const WEEKS_PER_SCHEDA = 8;
+
+function getSchedaInfo() {
+  let startDate = localStorage.getItem(SCHEDA_START_KEY);
+  let current = localStorage.getItem(SCHEDA_CURRENT_KEY) || 'A';
+  if (!startDate) {
+    startDate = new Date().toISOString();
+    localStorage.setItem(SCHEDA_START_KEY, startDate);
+    localStorage.setItem(SCHEDA_CURRENT_KEY, 'A');
+  }
+  const msElapsed = Date.now() - new Date(startDate).getTime();
+  const weeksElapsed = Math.floor(msElapsed / (7 * 24 * 60 * 60 * 1000));
+  const weekInScheda = (weeksElapsed % WEEKS_PER_SCHEDA) + 1;
+  const shouldChange = weeksElapsed > 0 && weeksElapsed % WEEKS_PER_SCHEDA === 0 &&
+    !localStorage.getItem('schedaChangeDismissed_' + weeksElapsed);
+  return { current, weeksElapsed, weekInScheda, shouldChange, weeksElapsed };
+}
+
+function cambiaScheda() {
+  const info = getSchedaInfo();
+  const newScheda = info.current === 'A' ? 'B' : 'A';
+  localStorage.setItem(SCHEDA_CURRENT_KEY, newScheda);
+  localStorage.setItem(SCHEDA_START_KEY, new Date().toISOString());
+  localStorage.setItem('schedaChangeDismissed_' + info.weeksElapsed, '1');
+  updateSchedaBanner();
+  document.getElementById('cambio-scheda-alert').style.display = 'none';
+  showToast(`🔄 Scheda ${newScheda} attivata! Nuovi esercizi per nuovi stimoli 💪`);
+}
+
+function updateSchedaBanner() {
+  const info = getSchedaInfo();
+  const suffix = info.current === 'A' ? '' : '_b';
+  document.getElementById('scheda-label').textContent = `Scheda ${info.current} — Push/Pull/Legs`;
+  document.getElementById('scheda-weeks').textContent =
+    info.current === 'A' ? 'Esercizi base — massima progressione' : 'Variante avanzata — nuovi stimoli';
+  document.getElementById('scheda-week-num').textContent = info.weekInScheda;
+  document.getElementById('scheda-progress-bar').style.width = (info.weekInScheda / WEEKS_PER_SCHEDA * 100) + '%';
+
+  // Aggiorna tasti giorno con scheda corretta
+  const labels = { push: ['🔴','PUSH','Petto · Spalle · Tricipiti'], pull: ['🔵','PULL','Schiena · Bicipiti'], legs: ['🟢','LEGS + Core','Gambe · Addome'] };
+  ['push','pull','legs'].forEach(d => {
+    const btn = document.getElementById('btn-' + d);
+    if (btn) {
+      btn.setAttribute('onclick', `selectDay('${d}${suffix}')`);
+      const [icon, nome, sub] = labels[d];
+      btn.innerHTML = `${icon} Giorno — ${nome} ${info.current === 'B' ? '<span style="color:#FF9800;font-size:0.7rem;">B</span>' : ''}<span>${sub}</span>`;
+    }
+  });
+
+  document.getElementById('cambio-scheda-alert').style.display = info.shouldChange ? 'block' : 'none';
+}
+
+// ===== TIMER RIPOSO =====
+function startRestTimer(btn, seconds) {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  let remaining = seconds;
+  btn.style.background = '#1a3a5c';
+  btn.style.borderColor = '#2196F3';
+  btn.style.color = '#90CAF9';
+
+  function tick() {
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    btn.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+    if (remaining <= 0) {
+      clearInterval(timerInterval); timerInterval = null;
+      btn.textContent = '✅ Via!';
+      btn.style.background = '#1a3a1a';
+      btn.style.borderColor = '#4CAF50';
+      btn.style.color = '#4CAF50';
+      // Vibrazione se supportata
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      setTimeout(() => {
+        btn.textContent = `⏸ Riposo ${seconds >= 60 ? Math.floor(seconds/60)+'min' : seconds+'sec'}`;
+        btn.style.background = '#12121f';
+        btn.style.borderColor = '#444';
+        btn.style.color = '#888';
+      }, 2000);
+      return;
+    }
+    remaining--;
+  }
+  tick();
+  timerInterval = setInterval(tick, 1000);
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'allenamento') updateSchedaBanner();
+  if (name === 'progressi') renderProgress();
+  if (name === 'storico') renderHistory();
+}
+
+function selectDay(day) {
+  currentDay = day;
+  const w = WORKOUTS[day];
+  document.getElementById('workout-title').textContent = w.name;
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
+
+  // Calcolo durata stimata
+  const totalSets = w.exercises.reduce((s, e) => s + e.sets, 0);
+  const workTime = totalSets * 45; // ~45s per serie
+  const restTime = totalSets * (w.restSec || 90);
+  const totalMin = Math.round((workTime + restTime) / 60);
+
+  const prs = getPRs();
+  const restSec = w.restSec || 90;
+  const restLabel = restSec >= 60 ? Math.floor(restSec/60) + 'min' : restSec + 'sec';
+  let html = `
+  <div style="background:#12121f;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;gap:16px;">
+    <div style="text-align:center;">
+      <div style="font-size:1.2rem;font-weight:bold;color:#FF9800;">${totalMin}'</div>
+      <div style="font-size:0.68rem;color:#666;">durata est.</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.2rem;font-weight:bold;color:#90CAF9;">${w.exercises.length}</div>
+      <div style="font-size:0.68rem;color:#666;">esercizi</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.2rem;font-weight:bold;color:#4CAF50;">${totalSets}</div>
+      <div style="font-size:0.68rem;color:#666;">serie tot.</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.2rem;font-weight:bold;color:#888;">${restLabel}</div>
+      <div style="font-size:0.68rem;color:#666;">riposo</div>
+    </div>
+  </div>`;
+
+  w.exercises.forEach((ex, i) => {
+    const pr = prs[ex.name] || { weight: 0, completedAllSets: false };
+    const suggestedWeight = pr.completedAllSets ? pr.weight + 2.5 : (pr.weight || 20);
+    const ytQuery = encodeURIComponent((ex.ytName || ex.name) + ' come si esegue tutorial');
+    const ytUrl = `https://www.youtube.com/results?search_query=${ytQuery}`;
+    const timerLabel = restSec >= 60 ? Math.floor(restSec/60) + 'min' : restSec + 'sec';
+    html += `
+    <div class="exercise-row">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div class="exercise-name">${ex.name}</div>
+        <a href="${ytUrl}" target="_blank" class="yt-btn" title="Guarda su YouTube">▶ Video</a>
+      </div>
+      <div class="exercise-meta">${ex.sets} serie × ${ex.reps} rip</div>
+      <div class="input-row">
+        <label>Peso (kg)</label>
+        <input type="number" id="weight-${i}" step="0.5" min="0"
+          value="${suggestedWeight}" oninput="checkSuggestion(${i},'${ex.name}',${ex.sets},${ex.targetReps})">
+        <label>Rip completate</label>
+        <input type="number" id="reps-${i}" min="0" max="30"
+          placeholder="${ex.targetReps}" oninput="checkSuggestion(${i},'${ex.name}',${ex.sets},${ex.targetReps})">
+      </div>
+      <button class="rest-timer-btn" id="timer-${i}"
+        onclick="startRestTimer(this, ${restSec})"
+        style="margin-top:8px;width:100%;padding:9px;background:#12121f;border:1px solid #444;border-radius:8px;color:#888;font-size:0.8rem;cursor:pointer;transition:all 0.2s;">
+        ⏸ Riposo ${timerLabel}
+      </button>
+      <div class="suggestion" id="sug-${i}"></div>
+    </div>`;
+  });
+
+  document.getElementById('exercises-list').innerHTML = html;
+  document.getElementById('workout-form').style.display = 'block';
+  document.getElementById('workout-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function checkSuggestion(i, name, sets, targetReps) {
+  const weight = parseFloat(document.getElementById('weight-' + i).value) || 0;
+  const reps = parseInt(document.getElementById('reps-' + i).value) || 0;
+  const sug = document.getElementById('sug-' + i);
+
+  if (reps >= targetReps) {
+    sug.style.display = 'block';
+    sug.className = 'suggestion';
+    sug.textContent = `✅ Ottimo! Prossima volta prova ${weight + 2.5}kg (+2.5kg)`;
+  } else if (reps > 0 && reps < targetReps - 2) {
+    sug.style.display = 'block';
+    sug.className = 'suggestion warn';
+    sug.textContent = `💪 Mantieni ${weight}kg — punta a ${targetReps} rip prima di aumentare`;
+  } else {
+    sug.style.display = 'none';
+  }
+}
+
+function saveWorkout() {
+  const w = WORKOUTS[currentDay];
+  const prs = getPRs();
+  let newPRs = 0;
+  const results = [];
+
+  w.exercises.forEach((ex, i) => {
+    const weight = parseFloat(document.getElementById('weight-' + i).value) || 0;
+    const reps = parseInt(document.getElementById('reps-' + i).value) || 0;
+    const completedAllSets = reps >= ex.targetReps;
+    const isPR = weight > (prs[ex.name]?.weight || 0);
+    if (isPR) newPRs++;
+    prs[ex.name] = { weight, completedAllSets, reps, lastDate: new Date().toISOString() };
+    results.push({ name: ex.name, weight, reps, sets: ex.sets });
+  });
+
+  savePRs(prs);
+
+  const history = getHistory();
+  history.unshift({
+    day: currentDay,
+    dayName: w.name,
+    date: new Date().toLocaleDateString('it-IT'),
+    timestamp: Date.now(),
+    results,
+    newPRs
+  });
+  saveHistory(history);
+
+  showToast(newPRs > 0 ? `🏆 Salvato! ${newPRs} nuovo/i personal record!` : '✅ Allenamento salvato!');
+  cancelWorkout();
+  renderProgress();
+}
+
+function cancelWorkout() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  document.getElementById('workout-form').style.display = 'none';
+  currentDay = null;
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
+}
+
+function renderProgress() {
+  const history = getHistory();
+  const prs = getPRs();
+  document.getElementById('stat-sessions').textContent = history.length;
+
+  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const weekSessions = history.filter(h => h.timestamp > oneWeekAgo).length;
+  document.getElementById('stat-week').textContent = weekSessions;
+
+  let streak = 0;
+  const today = new Date().toLocaleDateString('it-IT');
+  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('it-IT');
+  if (history.length > 0) {
+    const lastDate = history[0].date;
+    if (lastDate === today || lastDate === yesterday) {
+      streak = 1;
+      for (let i = 1; i < history.length; i++) {
+        const diff = (history[i-1].timestamp - history[i].timestamp) / 86400000;
+        if (diff <= 2) streak++; else break;
+      }
+    }
+  }
+  document.getElementById('stat-streak').textContent = streak;
+
+  const totalPRs = Object.values(prs).filter(p => p.weight > 0).length;
+  document.getElementById('stat-prs').textContent = totalPRs;
+
+  let prHtml = '';
+  const allExercises = [...WORKOUTS.push.exercises, ...WORKOUTS.pull.exercises, ...WORKOUTS.legs.exercises];
+  allExercises.forEach(ex => {
+    const pr = prs[ex.name];
+    if (pr && pr.weight > 0) {
+      const pct = Math.min(100, (pr.weight / (pr.weight * 1.5)) * 100);
+      const next = pr.completedAllSets ? pr.weight + 2.5 : pr.weight;
+      prHtml += `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+          <span>${ex.name}</span>
+          <span style="color:#90CAF9;font-weight:bold;">${pr.weight}kg</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+        <div style="font-size:0.72rem;color:#4CAF50;">→ Prossimo obiettivo: ${next}kg</div>
+      </div>`;
+    }
+  });
+  document.getElementById('pr-list').innerHTML = prHtml || '<p style="color:#666;font-size:0.85rem;">Nessun dato ancora. Inizia il primo allenamento!</p>';
+
+  const dayCounts = { push: 0, pull: 0, legs: 0 };
+  history.slice(0, 10).forEach(h => { if (dayCounts[h.day] !== undefined) dayCounts[h.day]++; });
+  const minDay = Object.entries(dayCounts).sort((a, b) => a[1] - b[1])[0][0];
+  const nextNames = { push: 'PUSH (Petto/Spalle/Tricipiti)', pull: 'PULL (Schiena/Bicipiti)', legs: 'LEGS + Core' };
+  document.getElementById('next-session').textContent =
+    history.length === 0 ? 'Inizia con il Giorno A — PUSH! 💪' :
+    `Consigliato: Giorno ${minDay.toUpperCase()} — ${nextNames[minDay]}`;
+}
+
+function renderHistory() {
+  const history = getHistory();
+  if (history.length === 0) {
+    document.getElementById('history-list').innerHTML = '<p style="color:#666;font-size:0.85rem;">Nessun allenamento registrato.</p>';
+    return;
+  }
+  let html = '';
+  history.slice(0, 20).forEach(h => {
+    const badge = `<span class="badge badge-${h.day}">${h.day.toUpperCase()}</span>`;
+    let details = h.results.map(r => `${r.name}: <b>${r.weight}kg</b> × ${r.reps} rip`).join('<br>');
+    html += `
+    <div class="history-item">
+      <div class="history-date">${h.date} ${badge} ${h.newPRs > 0 ? '🏆 ' + h.newPRs + ' PR' : ''}</div>
+      <div class="history-content" style="font-size:0.78rem;color:#aaa;margin-top:6px;">${details}</div>
+    </div>`;
+  });
+  document.getElementById('history-list').innerHTML = html;
+}
+
+function clearHistory() {
+  if (confirm('Cancellare tutto lo storico?')) {
+    localStorage.removeItem('gymHistory');
+    localStorage.removeItem('gymPRs');
+    renderHistory();
+    showToast('🗑️ Storico cancellato');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function getPRs() { return JSON.parse(localStorage.getItem('gymPRs') || '{}'); }
+function savePRs(prs) { localStorage.setItem('gymPRs', JSON.stringify(prs)); }
+function getHistory() { return JSON.parse(localStorage.getItem('gymHistory') || '[]'); }
+function saveHistory(h) { localStorage.setItem('gymHistory', JSON.stringify(h)); }
+
+document.getElementById('header-date').textContent =
+  new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+
+// Init scheda banner all'avvio
+updateSchedaBanner();
+
+function showSeason(season) {
+  document.querySelectorAll('.diet-season').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('diet-' + season).style.display = 'block';
+  document.getElementById('btn-' + season).classList.add('active');
+}
+
+// Auto-seleziona la stagione corrente
+(function() {
+  const m = new Date().getMonth() + 1;
+  if (m >= 6 && m <= 8) showSeason('estate');
+  else if (m >= 9 && m <= 11) showSeason('autunno');
+  else if (m === 12 || m <= 2) showSeason('inverno');
+  else showSeason('primavera');
+})();
+
+// ===================== SPESA =====================
+const SPESA_DATA = {
+  estate: [
+    { cat: '🥩 Proteine', items: [
+      { name: 'Petto di pollo', qty: '1 kg', tag: 'fresco' },
+      { name: 'Tonno al naturale', qty: '6 scatolette', tag: 'scorta' },
+      { name: 'Salmone fresco', qty: '400g', tag: 'fresco' },
+      { name: 'Pesce spada', qty: '300g', tag: 'fresco' },
+      { name: 'Uova', qty: '12 pezzi', tag: 'base' },
+      { name: 'Yogurt greco 0%', qty: '4 vasetti 200g', tag: 'fresco' },
+      { name: 'Ricotta light', qty: '250g', tag: 'fresco' },
+    ]},
+    { cat: '🌾 Carboidrati', items: [
+      { name: 'Riso basmati', qty: '1 kg', tag: 'scorta' },
+      { name: 'Pasta integrale', qty: '500g', tag: 'scorta' },
+      { name: 'Pane integrale', qty: '1 confezione', tag: 'fresco' },
+      { name: 'Avena', qty: '500g', tag: 'scorta' },
+    ]},
+    { cat: '🥗 Verdure & Frutta', items: [
+      { name: 'Anguria', qty: '1 fetta grande', tag: 'stagionale' },
+      { name: 'Melone', qty: '1 piccolo', tag: 'stagionale' },
+      { name: 'Pomodorini', qty: '500g', tag: 'fresco' },
+      { name: 'Cetrioli', qty: '3 pezzi', tag: 'fresco' },
+      { name: 'Lattuga / rucola', qty: '1 busta', tag: 'fresco' },
+      { name: 'Zucchine', qty: '4 pezzi', tag: 'fresco' },
+      { name: 'Banane', qty: '6 pezzi', tag: 'fresco' },
+      { name: 'Fragole / frutti di bosco', qty: '300g', tag: 'stagionale' },
+    ]},
+    { cat: '🧴 Condimenti & Grassi', items: [
+      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
+      { name: 'Mandorle / arachidi', qty: '200g', tag: 'scorta' },
+      { name: 'Avocado', qty: '2 pezzi', tag: 'fresco' },
+    ]},
+  ],
+  autunno: [
+    { cat: '🥩 Proteine', items: [
+      { name: 'Petto di pollo', qty: '1 kg', tag: 'fresco' },
+      { name: 'Macinato di tacchino', qty: '500g', tag: 'fresco' },
+      { name: 'Salmone fresco', qty: '400g', tag: 'fresco' },
+      { name: 'Bistecca manzo', qty: '400g', tag: 'fresco' },
+      { name: 'Uova', qty: '12 pezzi', tag: 'base' },
+      { name: 'Yogurt greco', qty: '4 vasetti', tag: 'fresco' },
+      { name: 'Ricotta', qty: '250g', tag: 'fresco' },
+    ]},
+    { cat: '🌾 Carboidrati', items: [
+      { name: 'Riso basmati', qty: '1 kg', tag: 'scorta' },
+      { name: 'Pasta integrale', qty: '1 kg', tag: 'scorta' },
+      { name: 'Pane di segale', qty: '1 confezione', tag: 'fresco' },
+      { name: 'Avena', qty: '500g', tag: 'scorta' },
+      { name: 'Patate dolci', qty: '1 kg', tag: 'fresco' },
+    ]},
+    { cat: '🥦 Verdure & Frutta', items: [
+      { name: 'Broccoli', qty: '500g', tag: 'stagionale' },
+      { name: 'Spinaci', qty: '300g', tag: 'stagionale' },
+      { name: 'Funghi champignon', qty: '250g', tag: 'fresco' },
+      { name: 'Mele', qty: '6 pezzi', tag: 'stagionale' },
+      { name: 'Pere', qty: '4 pezzi', tag: 'stagionale' },
+      { name: 'Banane', qty: '6 pezzi', tag: 'fresco' },
+    ]},
+    { cat: '🫘 Legumi', items: [
+      { name: 'Lenticchie (barattolo)', qty: '2 barattoli', tag: 'scorta' },
+      { name: 'Ceci (barattolo)', qty: '2 barattoli', tag: 'scorta' },
+      { name: 'Fagioli neri', qty: '1 barattolo', tag: 'scorta' },
+    ]},
+    { cat: '🧴 Condimenti & Grassi', items: [
+      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
+      { name: 'Noci / mandorle', qty: '300g', tag: 'scorta' },
+      { name: 'Burro di arachidi', qty: '1 vasetto', tag: 'scorta' },
+    ]},
+  ],
+  inverno: [
+    { cat: '🥩 Proteine', items: [
+      { name: 'Petto di pollo', qty: '1.5 kg', tag: 'fresco' },
+      { name: 'Bistecca di manzo/vitello', qty: '600g', tag: 'fresco' },
+      { name: 'Salmone fresco', qty: '500g', tag: 'fresco' },
+      { name: 'Macinato di manzo', qty: '500g', tag: 'fresco' },
+      { name: 'Petto di tacchino', qty: '400g', tag: 'fresco' },
+      { name: 'Uova', qty: '18 pezzi', tag: 'base' },
+      { name: 'Ricotta intera', qty: '500g', tag: 'fresco' },
+      { name: 'Latte intero', qty: '1L', tag: 'fresco' },
+    ]},
+    { cat: '🌾 Carboidrati', items: [
+      { name: 'Riso integrale', qty: '1 kg', tag: 'scorta' },
+      { name: 'Pasta', qty: '1.5 kg', tag: 'scorta' },
+      { name: 'Pane integrale', qty: '1 confezione', tag: 'fresco' },
+      { name: 'Avena', qty: '1 kg', tag: 'scorta' },
+      { name: 'Patate', qty: '1.5 kg', tag: 'fresco' },
+      { name: 'Patate dolci', qty: '1 kg', tag: 'fresco' },
+    ]},
+    { cat: '🥦 Verdure', items: [
+      { name: 'Broccoli / cavolfiore', qty: '700g', tag: 'stagionale' },
+      { name: 'Spinaci surgelati', qty: '500g', tag: 'scorta' },
+      { name: 'Verza / cavolo', qty: '1 piccolo', tag: 'stagionale' },
+      { name: 'Carote', qty: '500g', tag: 'fresco' },
+    ]},
+    { cat: '🍌 Frutta', items: [
+      { name: 'Banane', qty: '8 pezzi', tag: 'fresco' },
+      { name: 'Mele / pere', qty: '6 pezzi', tag: 'stagionale' },
+      { name: 'Arance / kiwi', qty: '6 pezzi', tag: 'stagionale' },
+    ]},
+    { cat: '🫘 Legumi', items: [
+      { name: 'Fagioli borlotti', qty: '2 barattoli', tag: 'scorta' },
+      { name: 'Ceci', qty: '2 barattoli', tag: 'scorta' },
+      { name: 'Lenticchie', qty: '2 barattoli', tag: 'scorta' },
+    ]},
+    { cat: '🧴 Condimenti & Extra', items: [
+      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
+      { name: 'Noci / arachidi', qty: '400g', tag: 'scorta' },
+      { name: 'Burro di arachidi', qty: '1 vasetto', tag: 'scorta' },
+      { name: 'Cioccolato fondente 80%', qty: '100g', tag: 'extra' },
+      { name: 'Miele', qty: '1 vasetto', tag: 'scorta' },
+    ]},
+  ],
+  primavera: [
+    { cat: '🥩 Proteine', items: [
+      { name: 'Petto di pollo', qty: '1 kg', tag: 'fresco' },
+      { name: 'Petto di tacchino', qty: '500g', tag: 'fresco' },
+      { name: 'Pesce bianco (merluzzo)', qty: '400g', tag: 'fresco' },
+      { name: 'Tonno al naturale', qty: '6 scatolette', tag: 'scorta' },
+      { name: 'Gamberi surgelati', qty: '300g', tag: 'scorta' },
+      { name: 'Uova', qty: '12 pezzi', tag: 'base' },
+      { name: 'Yogurt greco 0%', qty: '4 vasetti', tag: 'fresco' },
+      { name: 'Fiocchi di latte', qty: '250g', tag: 'fresco' },
+      { name: 'Ricotta magra', qty: '250g', tag: 'fresco' },
+    ]},
+    { cat: '🌾 Carboidrati', items: [
+      { name: 'Riso basmati', qty: '1 kg', tag: 'scorta' },
+      { name: 'Pasta integrale', qty: '500g', tag: 'scorta' },
+      { name: 'Pane integrale', qty: '1 confezione', tag: 'fresco' },
+      { name: 'Avena', qty: '500g', tag: 'scorta' },
+    ]},
+    { cat: '🥗 Verdure & Frutta', items: [
+      { name: 'Asparagi', qty: '500g', tag: 'stagionale' },
+      { name: 'Spinaci freschi', qty: '300g', tag: 'stagionale' },
+      { name: 'Zucchine', qty: '4 pezzi', tag: 'fresco' },
+      { name: 'Radicchio / lattuga', qty: '1 cespo', tag: 'fresco' },
+      { name: 'Fragole', qty: '500g', tag: 'stagionale' },
+      { name: 'Kiwi', qty: '6 pezzi', tag: 'stagionale' },
+      { name: 'Banane', qty: '6 pezzi', tag: 'fresco' },
+      { name: 'Mirtilli / frutti di bosco', qty: '300g', tag: 'stagionale' },
+    ]},
+    { cat: '🫘 Legumi', items: [
+      { name: 'Ceci (barattolo)', qty: '2 barattoli', tag: 'scorta' },
+    ]},
+    { cat: '🧴 Condimenti & Grassi', items: [
+      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
+      { name: 'Mandorle', qty: '200g', tag: 'scorta' },
+      { name: 'Latte di mandorla', qty: '1L', tag: 'fresco' },
+    ]},
+  ],
+};
+
+const SPESA_BASE = [
+  { name: 'Sale rosa himalayano', qty: '1 confezione' },
+  { name: 'Olio EVO', qty: '1 bottiglia' },
+  { name: 'Cacao amaro in polvere', qty: '1 confezione' },
+  { name: 'Miele millefiori', qty: '1 vasetto' },
+  { name: 'Cannella in polvere', qty: '1 confezione' },
+  { name: 'Aglio', qty: '1 testa' },
+  { name: 'Salsa di pomodoro', qty: '2 barattoli' },
+  { name: 'Paprika dolce', qty: '1 confezione' },
+  { name: 'Dado/brodo vegetale', qty: '1 confezione' },
+  { name: 'Proteine Whey (opzionale)', qty: '1 kg' },
+];
+
+let currentSpesaSeason = 'estate';
+
+function showSpesa(season) {
+  currentSpesaSeason = season;
+  document.querySelectorAll('.spesa-list').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('#spesa-season-selector .season-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('spesa-' + season).style.display = 'block';
+  document.getElementById('spesa-btn-' + season).classList.add('active');
+  renderSpesaList(season);
+  updateSpesaProgress();
+}
+
+function renderSpesaList(season) {
+  const container = document.getElementById('spesa-' + season);
+  const checked = getSpesaChecked();
+  let html = '';
+  SPESA_DATA[season].forEach(cat => {
+    html += `<div class="card spesa-category">
+      <div class="spesa-category-title">${cat.cat}</div>`;
+    cat.items.forEach(item => {
+      const key = season + '_' + item.name;
+      const isChecked = checked[key];
+      html += `
+      <div class="spesa-item ${isChecked ? 'checked' : ''}" onclick="toggleSpesa('${key}','${season}')">
+        <div class="spesa-checkbox">${isChecked ? '✓' : ''}</div>
+        <div class="spesa-item-info">
+          <div class="spesa-item-name">${item.name}</div>
+          <div class="spesa-item-qty">${item.qty}</div>
+        </div>
+        <span class="spesa-item-tag">${item.tag}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+
+  // Base list
+  const baseChecked = getSpesaChecked();
+  let baseHtml = '';
+  SPESA_BASE.forEach(item => {
+    const key = 'base_' + item.name;
+    const isChecked = baseChecked[key];
+    baseHtml += `
+    <div class="spesa-item ${isChecked ? 'checked' : ''}" onclick="toggleSpesa('${key}','${season}')">
+      <div class="spesa-checkbox">${isChecked ? '✓' : ''}</div>
+      <div class="spesa-item-info">
+        <div class="spesa-item-name">${item.name}</div>
+        <div class="spesa-item-qty">${item.qty}</div>
+      </div>
+      <span class="spesa-item-tag">base</span>
+    </div>`;
+  });
+  document.getElementById('spesa-base-list').innerHTML = baseHtml;
+}
+
+function toggleSpesa(key, season) {
+  const checked = getSpesaChecked();
+  checked[key] = !checked[key];
+  saveSpesaChecked(checked);
+  renderSpesaList(season);
+  updateSpesaProgress();
+}
+
+function updateSpesaProgress() {
+  const season = currentSpesaSeason;
+  const checked = getSpesaChecked();
+  const allItems = SPESA_DATA[season].flatMap(c => c.items).map(i => season + '_' + i.name);
+  const baseItems = SPESA_BASE.map(i => 'base_' + i.name);
+  const total = allItems.length + baseItems.length;
+  const done = [...allItems, ...baseItems].filter(k => checked[k]).length;
+  document.getElementById('spesa-counter').textContent = done + ' / ' + total;
+  document.getElementById('spesa-progress').style.width = (total ? (done / total * 100) : 0) + '%';
+}
+
+function checkAllSpesa() {
+  const season = currentSpesaSeason;
+  const checked = getSpesaChecked();
+  SPESA_DATA[season].forEach(cat => cat.items.forEach(item => { checked[season + '_' + item.name] = true; }));
+  SPESA_BASE.forEach(item => { checked['base_' + item.name] = true; });
+  saveSpesaChecked(checked);
+  renderSpesaList(season);
+  updateSpesaProgress();
+  showToast('✅ Tutti i prodotti selezionati!');
+}
+
+function clearSpesa() {
+  const season = currentSpesaSeason;
+  const checked = getSpesaChecked();
+  SPESA_DATA[season].forEach(cat => cat.items.forEach(item => { delete checked[season + '_' + item.name]; }));
+  SPESA_BASE.forEach(item => { delete checked['base_' + item.name]; });
+  saveSpesaChecked(checked);
+  renderSpesaList(season);
+  updateSpesaProgress();
+  showToast('🔄 Lista azzerata');
+}
+
+function getSpesaChecked() { return JSON.parse(localStorage.getItem('spesaChecked') || '{}'); }
+function saveSpesaChecked(d) { localStorage.setItem('spesaChecked', JSON.stringify(d)); }
+
+// Init spesa con stagione corrente
+(function() {
+  const m = new Date().getMonth() + 1;
+  let s = 'estate';
+  if (m >= 9 && m <= 11) s = 'autunno';
+  else if (m === 12 || m <= 2) s = 'inverno';
+  else if (m >= 3 && m <= 5) s = 'primavera';
+  showSpesa(s);
+})();
+</script>
+</body>
+</html>
