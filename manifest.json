@@ -1,0 +1,18 @@
+{
+  "name": "GymTracker",
+  "short_name": "GymTracker",
+  "description": "Il tuo personal trainer tascabile",
+  "start_url": "/gymtracker/gym-app.html",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

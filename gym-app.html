@@ -7,6 +7,7 @@
 
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
 
 <!-- PWA: nome e colore sulla schermata home -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1381,6 +1382,14 @@ function saveSpesaChecked(d) { localStorage.setItem('spesaChecked', JSON.stringi
   else if (m >= 3 && m <= 5) s = 'primavera';
   showSpesa(s);
 })();
+
+// Registra Service Worker (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/gymtracker/sw.js')
+      .catch(() => {}); // silenzioso se fallisce
+  });
+}
 </script>
 </body>
 </html>
