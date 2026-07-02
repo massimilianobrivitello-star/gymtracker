@@ -2,277 +2,198 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>💪 GymTracker</title>
-
-<link rel="icon" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="manifest" href="manifest.json">
-
-<!-- PWA: nome e colore sulla schermata home -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GymTracker">
-<meta name="theme-color" content="#0f0f1a">
+<title>Gym Tracker</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: #0f0f1a;
-  color: #e0e0e0;
-  font-family: 'Segoe UI', sans-serif;
-  min-height: 100vh;
-  padding-bottom: 80px;
+:root {
+  --bg: #0f0f1a;
+  --card: #1e1e2e;
+  --card-inner: #12121f;
+  --primary: #2196F3;
+  --success: #4CAF50;
+  --warning: #FF9800;
+  --danger: #F44336;
+  --text: #e0e0e0;
+  --muted: #888;
+  --border: #2a2a3e;
+  --radius: 12px;
+  --radius-sm: 8px;
 }
-header {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  padding: 16px 20px;
-  text-align: center;
-  border-bottom: 2px solid #2196F3;
-  position: sticky; top: 0; z-index: 100;
+body.light-mode {
+  --bg: #f5f5f5;
+  --card: #ffffff;
+  --card-inner: #f0f0f0;
+  --text: #1a1a1a;
+  --muted: #666;
+  --border: #ddd;
 }
-header h1 { font-size: 1.4rem; color: #90CAF9; }
-header p { font-size: 0.75rem; color: #666; margin-top: 2px; }
-
-nav {
-  display: flex;
-  background: #12121f;
-  border-bottom: 1px solid #222;
-  overflow-x: auto;
-  position: sticky; top: 60px; z-index: 99;
-}
-nav button {
-  flex: 1; min-width: 80px;
-  padding: 12px 8px;
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 0.75rem;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-nav button.active { color: #2196F3; border-bottom-color: #2196F3; }
-
-.page { display: none; padding: 16px; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
+#pin-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+.pin-logo { font-size: 56px; }
+.pin-title { font-size: 22px; font-weight: 700; color: var(--text); }
+.pin-dots { display: flex; gap: 16px; }
+.pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--primary); background: transparent; transition: background 0.15s; }
+.pin-dot.filled { background: var(--primary); }
+.pin-error { color: var(--danger); font-size: 14px; min-height: 18px; }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; }
+.pin-key { height: 72px; width: 72px; border-radius: 50%; border: none; background: var(--card); color: var(--text); font-size: 24px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; }
+.pin-key:active { background: var(--primary); transform: scale(0.93); }
+.app-container { display: none; flex-direction: column; min-height: 100vh; }
+.app-container.visible { display: flex; }
+.top-header { position: sticky; top: 0; z-index: 100; background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+.top-header h1 { font-size: 18px; font-weight: 700; }
+.top-header .header-right { display: flex; gap: 10px; align-items: center; }
+.theme-btn { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 4px; }
+.main-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 80px; }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: var(--card); border-top: 1px solid var(--border); display: flex; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; cursor: pointer; font-size: 10px; color: var(--muted); border: none; background: none; min-height: 56px; transition: color 0.2s; }
+.nav-item.active { color: var(--primary); }
+.nav-item span:first-child { font-size: 20px; margin-bottom: 2px; }
+.page { display: none; }
 .page.active { display: block; }
-
-.card {
-  background: #1e1e2e;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 14px;
-  border: 1px solid #2a2a3e;
+.card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; border: 1px solid var(--border); }
+.card-inner { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; }
+.card-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: var(--radius-sm); border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; min-height: 44px; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-ghost { background: var(--card-inner); color: var(--text); border: 1px solid var(--border); }
+.btn-sm { padding: 6px 12px; font-size: 12px; min-height: 34px; }
+.btn-full { width: 100%; }
+input[type=text], input[type=number], input[type=password], input[type=time], select, textarea {
+  background: var(--card-inner); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm);
+  padding: 10px 12px; font-size: 14px; width: 100%; font-family: inherit; transition: border 0.2s;
 }
-.card h2 { font-size: 1rem; color: #90CAF9; margin-bottom: 12px; }
-.card h3 { font-size: 0.9rem; color: #FF9800; margin-bottom: 8px; }
-
-.day-btn {
-  width: 100%; padding: 14px;
-  background: #16213e;
-  border: 1px solid #2196F3;
-  border-radius: 10px;
-  color: #90CAF9;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-bottom: 10px;
-  text-align: left;
-  transition: background 0.2s;
-}
-.day-btn:hover, .day-btn.selected { background: #1a3a5c; }
-.day-btn span { float: right; font-size: 0.8rem; color: #666; }
-
-.exercise-row {
-  background: #12121f;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 8px;
-  border-left: 3px solid #2196F3;
-}
-.exercise-name { font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #e0e0e0; }
-.exercise-meta { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
-.yt-btn {
-  padding: 4px 10px; background: #FF0000;
-  border-radius: 6px; color: #fff;
-  font-size: 0.7rem; font-weight: bold;
-  text-decoration: none; white-space: nowrap;
-  transition: background 0.2s;
-  display: inline-block;
-}
-.yt-btn:hover { background: #cc0000; }
-.input-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.input-row label { font-size: 0.75rem; color: #888; }
-.input-row input {
-  width: 70px; padding: 8px;
-  background: #1e1e2e; border: 1px solid #333;
-  border-radius: 6px; color: #fff;
-  font-size: 0.9rem; text-align: center;
-}
-.suggestion {
-  margin-top: 8px; padding: 6px 10px;
-  background: #1a3a1a; border-radius: 6px;
-  font-size: 0.75rem; color: #4CAF50;
-  display: none;
-}
-.suggestion.warn { background: #3a2a1a; color: #FF9800; }
-
-.btn-primary {
-  width: 100%; padding: 14px;
-  background: #2196F3; border: none;
-  border-radius: 10px; color: #fff;
-  font-size: 1rem; font-weight: bold;
-  cursor: pointer; margin-top: 8px;
-  transition: background 0.2s;
-}
-.btn-primary:hover { background: #1565C0; }
-.btn-secondary {
-  width: 100%; padding: 12px;
-  background: #1e1e2e; border: 1px solid #444;
-  border-radius: 10px; color: #aaa;
-  font-size: 0.9rem; cursor: pointer; margin-top: 8px;
-}
-
-.badge {
-  display: inline-block; padding: 2px 8px;
-  border-radius: 20px; font-size: 0.7rem;
-  font-weight: bold; margin-left: 6px;
-}
-.badge-push { background: #7b1fa2; color: #fff; }
-.badge-pull { background: #1565C0; color: #fff; }
-.badge-legs { background: #2e7d32; color: #fff; }
-
-.history-item {
-  background: #12121f; border-radius: 8px;
-  padding: 12px; margin-bottom: 8px;
-  border-left: 3px solid #FF9800;
-}
-.history-date { font-size: 0.75rem; color: #888; margin-bottom: 4px; }
-.history-content { font-size: 0.85rem; }
-
-.diet-meal {
-  background: #12121f; border-radius: 8px;
-  padding: 12px; margin-bottom: 8px;
-  border-left: 3px solid #4CAF50;
-}
-.diet-meal h4 { color: #4CAF50; font-size: 0.85rem; margin-bottom: 6px; }
-.diet-meal p { font-size: 0.82rem; color: #ccc; line-height: 1.5; }
-
-.progress-bar-wrap { background: #12121f; border-radius: 20px; height: 8px; margin: 6px 0; }
-.progress-bar { height: 8px; border-radius: 20px; background: #2196F3; transition: width 0.4s; }
-
-.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.stat-box {
-  background: #12121f; border-radius: 10px;
-  padding: 12px; text-align: center;
-}
-.stat-box .val { font-size: 1.4rem; font-weight: bold; color: #90CAF9; }
-.stat-box .lbl { font-size: 0.7rem; color: #666; margin-top: 2px; }
-
-.toast {
-  position: fixed; bottom: 90px; left: 50%;
-  transform: translateX(-50%);
-  background: #4CAF50; color: #fff;
-  padding: 10px 20px; border-radius: 20px;
-  font-size: 0.85rem; z-index: 999;
-  opacity: 0; transition: opacity 0.3s;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; }
-
-.season-btn {
-  padding: 12px 8px;
-  background: #1e1e2e;
-  border: 1px solid #333;
-  border-radius: 10px;
-  color: #888;
-  font-size: 0.85rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-}
-.season-btn.active {
-  background: #16213e;
-  border-color: #2196F3;
-  color: #90CAF9;
-}
-.diet-season { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-/* SCHEDA BANNER */
-#scheda-banner { background: linear-gradient(135deg, #1a1a2e, #16213e); }
-#cambio-scheda-alert { animation: fadeIn 0.4s ease; }
-
-/* SPESA */
-.spesa-category { margin-bottom: 14px; }
-.spesa-category-title {
-  font-size: 0.8rem; font-weight: bold;
-  color: #FF9800; text-transform: uppercase;
-  letter-spacing: 0.05em; margin-bottom: 6px;
-  padding: 6px 0; border-bottom: 1px solid #2a2a3e;
-}
-.spesa-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; margin-bottom: 4px;
-  background: #12121f; border-radius: 8px;
-  cursor: pointer; transition: all 0.2s;
-  border: 1px solid transparent;
-}
-.spesa-item:hover { background: #1a1a2e; }
-.spesa-item.checked {
-  background: #0d1a0d;
-  border-color: #2e7d32;
-  opacity: 0.65;
-}
-.spesa-item.checked .spesa-item-name { text-decoration: line-through; color: #555; }
-.spesa-checkbox {
-  width: 22px; height: 22px; border-radius: 6px;
-  border: 2px solid #444; background: #1e1e2e;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0; transition: all 0.2s;
-}
-.spesa-item.checked .spesa-checkbox { background: #2e7d32; border-color: #2e7d32; }
-.spesa-item-info { flex: 1; }
-.spesa-item-name { font-size: 0.88rem; color: #e0e0e0; }
-.spesa-item-qty  { font-size: 0.72rem; color: #888; margin-top: 1px; }
-.spesa-item-tag  {
-  font-size: 0.65rem; padding: 2px 7px;
-  border-radius: 20px; background: #1a3a1a;
-  color: #81C784; white-space: nowrap;
-}
-
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+textarea { resize: vertical; min-height: 60px; }
+label { font-size: 13px; color: var(--muted); margin-bottom: 4px; display: block; }
+.scheda-banner { background: linear-gradient(135deg, #1e1e2e, #12121f); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; border: 1px solid var(--border); }
+.scheda-badge { display: inline-block; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
+.scheda-info { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.scheda-sub { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.progress-bar { height: 8px; background: var(--card-inner); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s; }
+.day-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.day-btn { padding: 14px 8px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.15s; min-height: 70px; }
+.day-btn.push { background: rgba(244,67,54,0.12); border-color: rgba(244,67,54,0.3); color: #F44336; }
+.day-btn.push.active, .day-btn.push:active { background: #F44336; color: #fff; border-color: #F44336; }
+.day-btn.pull { background: rgba(33,150,243,0.12); border-color: rgba(33,150,243,0.3); color: #2196F3; }
+.day-btn.pull.active, .day-btn.pull:active { background: #2196F3; color: #fff; border-color: #2196F3; }
+.day-btn.legs { background: rgba(76,175,80,0.12); border-color: rgba(76,175,80,0.3); color: #4CAF50; }
+.day-btn.legs.active, .day-btn.legs:active { background: #4CAF50; color: #fff; border-color: #4CAF50; }
+.workout-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.workout-stat { background: var(--card-inner); border-radius: var(--radius-sm); padding: 8px 6px; text-align: center; }
+.workout-stat .val { font-size: 15px; font-weight: 700; color: var(--primary); }
+.workout-stat .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.chrono-display { font-size: 28px; font-weight: 800; text-align: center; color: var(--primary); font-variant-numeric: tabular-nums; margin: 6px 0; }
+.exercise-card { background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); }
+.ex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.ex-name { font-size: 15px; font-weight: 700; }
+.ex-sets { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.ex-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.ex-suggestion { font-size: 12px; padding: 6px 10px; border-radius: 6px; margin-bottom: 8px; }
+.ex-suggestion.ok { background: rgba(76,175,80,0.12); color: var(--success); }
+.ex-suggestion.warn { background: rgba(255,152,0,0.12); color: var(--warning); }
+.ex-suggestion.neutral { background: var(--card-inner); color: var(--muted); }
+.rest-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.rest-btn { flex: 1; }
+.rest-btn.running { background: var(--warning); color: #fff; }
+.rest-btn.done { background: var(--success); color: #fff; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.stat-card { background: var(--card); border-radius: var(--radius); padding: 16px; text-align: center; border: 1px solid var(--border); }
+.stat-card .number { font-size: 32px; font-weight: 800; color: var(--primary); }
+.stat-card .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+canvas { display: block; width: 100%; }
+.chart-wrap { background: var(--card-inner); border-radius: var(--radius-sm); padding: 8px; margin-top: 10px; overflow: hidden; }
+.season-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.season-btn { padding: 10px 4px; border-radius: var(--radius-sm); border: 2px solid var(--border); background: var(--card-inner); cursor: pointer; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.15s; color: var(--text); min-height: 44px; }
+.season-btn.active { border-color: var(--primary); background: rgba(33,150,243,0.15); color: var(--primary); }
+.meal-card { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
+.meal-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+.meal-option { font-size: 13px; color: var(--text); padding: 4px 0; border-bottom: 1px solid var(--border); }
+.meal-option:last-child { border-bottom: none; }
+.water-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin: 12px 0; }
+.water-glass { font-size: 24px; cursor: pointer; text-align: center; transition: transform 0.15s, opacity 0.15s; opacity: 0.35; }
+.water-glass.filled { opacity: 1; transform: scale(1.1); }
+.macros-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+.macro-item { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.macro-item .mv { font-size: 22px; font-weight: 800; color: var(--primary); }
+.macro-item .ml { font-size: 11px; color: var(--muted); }
+.shopping-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.shopping-item:last-child { border-bottom: none; }
+.shopping-item input[type=checkbox] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--primary); cursor: pointer; }
+.shopping-item label { font-size: 13px; cursor: pointer; flex: 1; margin: 0; }
+.shopping-item label.checked { text-decoration: line-through; color: var(--muted); }
+.tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.tag-fresco { background: rgba(33,150,243,0.18); color: #2196F3; }
+.tag-scorta { background: rgba(255,152,0,0.18); color: #FF9800; }
+.tag-stagionale { background: rgba(76,175,80,0.18); color: #4CAF50; }
+.tag-base { background: rgba(136,136,136,0.18); color: #888; }
+.history-item { background: var(--card-inner); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; }
+.history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.history-date { font-size: 13px; font-weight: 700; }
+.day-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 700; }
+.badge-push { background: rgba(244,67,54,0.18); color: #F44336; }
+.badge-pull { background: rgba(33,150,243,0.18); color: #2196F3; }
+.badge-legs { background: rgba(76,175,80,0.18); color: #4CAF50; }
+.history-ex { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.history-notes { font-size: 12px; color: var(--warning); margin-top: 4px; }
+.settings-section { margin-bottom: 20px; }
+.settings-section h3 { font-size: 14px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+.toggle-label { font-size: 14px; }
+.toggle { position: relative; width: 44px; height: 24px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+.toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: transform 0.2s; }
+.toggle input:checked + .toggle-slider { background: var(--primary); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+.notif-days { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.day-check { display: flex; align-items: center; gap: 4px; background: var(--card-inner); padding: 5px 9px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.day-check input { accent-color: var(--primary); }
+.input-row { margin-bottom: 12px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 8px; }
+.cal-day { height: 30px; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 4px; color: var(--muted); }
+.cal-day.trained { background: var(--primary); color: #fff; font-weight: 700; }
+.cal-day.today { border: 1px solid var(--primary); color: var(--primary); }
+.cal-header { font-size: 10px; color: var(--muted); text-align: center; padding: 4px 0; }
+.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--card); color: var(--text); padding: 12px 20px; border-radius: var(--radius); font-size: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); z-index: 9000; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; border: 1px solid var(--border); white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.volume-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin-top: 10px; }
+.vol-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
+.vol-bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.3s; min-height: 4px; }
+.vol-bar.this-week { background: var(--primary); }
+.vol-bar.last-week { background: var(--muted); }
+.vol-label { font-size: 11px; color: var(--muted); }
+.meal-prep-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+.prep-day { background: var(--card-inner); border-radius: 6px; padding: 6px 4px; }
+.prep-day-name { font-size: 10px; font-weight: 700; color: var(--primary); text-align: center; margin-bottom: 4px; }
+.prep-day-content { font-size: 9px; color: var(--muted); line-height: 1.5; }
+.alert-banner { background: rgba(255,152,0,0.12); border: 1px solid rgba(255,152,0,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--warning); margin-bottom: 12px; display: none; }
+.alert-banner.show { display: block; }
 </style>
 </head>
 <body>
 
-<!-- PIN LOCK SCREEN -->
-<div id="pin-screen" style="
-  position:fixed; inset:0; background:#0f0f1a;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  z-index:9999; padding:24px;">
-  <div style="font-size:3rem; margin-bottom:8px;">💪</div>
-  <div style="font-size:1.4rem; font-weight:bold; color:#90CAF9; margin-bottom:4px;">GymTracker</div>
-  <div style="font-size:0.82rem; color:#666; margin-bottom:32px;">Inserisci il PIN per accedere</div>
-
-  <!-- Display PIN -->
-  <div id="pin-display" style="
-    display:flex; gap:12px; margin-bottom:28px;">
-    <div class="pin-dot" id="dot-0"></div>
-    <div class="pin-dot" id="dot-1"></div>
-    <div class="pin-dot" id="dot-2"></div>
-    <div class="pin-dot" id="dot-3"></div>
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <div class="pin-logo">🏋️</div>
+  <div class="pin-title">Gym Tracker</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="dot0"></div>
+    <div class="pin-dot" id="dot1"></div>
+    <div class="pin-dot" id="dot2"></div>
+    <div class="pin-dot" id="dot3"></div>
   </div>
-
-  <!-- Messaggio errore -->
-  <div id="pin-error" style="
-    color:#F44336; font-size:0.82rem;
-    margin-bottom:16px; height:20px;
-    transition: opacity 0.3s;"></div>
-
-  <!-- Tastierino numerico -->
-  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:240px;">
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-keypad">
     <button class="pin-key" onclick="pinPress('1')">1</button>
     <button class="pin-key" onclick="pinPress('2')">2</button>
     <button class="pin-key" onclick="pinPress('3')">3</button>
@@ -282,1113 +203,1299 @@ nav button.active { color: #2196F3; border-bottom-color: #2196F3; }
     <button class="pin-key" onclick="pinPress('7')">7</button>
     <button class="pin-key" onclick="pinPress('8')">8</button>
     <button class="pin-key" onclick="pinPress('9')">9</button>
-    <button class="pin-key pin-key-empty" disabled></button>
+    <button class="pin-key" onclick="pinPress('del')" style="font-size:18px">⌫</button>
     <button class="pin-key" onclick="pinPress('0')">0</button>
-    <button class="pin-key pin-key-del" onclick="pinDel()">⌫</button>
+    <button class="pin-key" onclick="pinPress('ok')" style="background:var(--primary);color:#fff">OK</button>
   </div>
 </div>
 
-<style>
-.pin-dot {
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  border: 2px solid #444;
-  background: transparent;
-  transition: all 0.15s;
-}
-.pin-dot.filled { background: #2196F3; border-color: #2196F3; }
-.pin-dot.error  { background: #F44336; border-color: #F44336; }
-.pin-key {
-  padding: 18px; background: #1e1e2e;
-  border: 1px solid #2a2a3e; border-radius: 12px;
-  color: #e0e0e0; font-size: 1.3rem; font-weight: bold;
-  cursor: pointer; transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.pin-key:active { background: #2196F3; border-color: #2196F3; color: #fff; transform: scale(0.95); }
-.pin-key-del { color: #888; font-size: 1.1rem; }
-.pin-key-empty { background: transparent; border-color: transparent; cursor: default; }
-</style>
+<!-- APP -->
+<div class="app-container" id="app">
+  <div class="top-header">
+    <h1 id="page-title">🏋️ Allenamento</h1>
+    <div class="header-right">
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
+    </div>
+  </div>
+  <div class="main-content" id="main-content">
+    <!-- PAGE 1: ALLENAMENTO -->
+    <div class="page active" id="page-allena">
+      <div class="alert-banner" id="scheda-alert">⚠️ Sono passate 8 settimane! È ora di cambiare scheda.</div>
+      <div class="scheda-banner" id="scheda-banner">
+        <div class="scheda-badge" id="scheda-badge">SCHEDA A</div>
+        <div class="scheda-info" id="scheda-info">Settimana 1 di 8</div>
+        <div class="scheda-sub" id="scheda-sub">Iniziata il --</div>
+        <div class="progress-bar"><div class="progress-fill" id="scheda-progress" style="width:12.5%"></div></div>
+      </div>
+      <div class="day-btns">
+        <button class="day-btn push" onclick="selectDay('PUSH')"><span style="font-size:20px">🔴</span>PUSH</button>
+        <button class="day-btn pull" onclick="selectDay('PULL')"><span style="font-size:20px">🔵</span>PULL</button>
+        <button class="day-btn legs" onclick="selectDay('LEGS')"><span style="font-size:20px">🟢</span>LEGS</button>
+      </div>
+      <div id="workout-area" style="display:none">
+        <div class="workout-stats" id="workout-stats">
+          <div class="workout-stat"><div class="val" id="ws-dur">--</div><div class="lbl">Durata est.</div></div>
+          <div class="workout-stat"><div class="val" id="ws-ex">0</div><div class="lbl">Esercizi</div></div>
+          <div class="workout-stat"><div class="val" id="ws-sets">0</div><div class="lbl">Serie tot.</div></div>
+          <div class="workout-stat"><div class="val chrono-display" id="chrono" style="font-size:15px">00:00</div><div class="lbl">Tempo</div></div>
+        </div>
+        <div id="exercises-list"></div>
+        <button class="btn btn-success btn-full" onclick="saveWorkout()" style="margin-top:8px">💾 Salva Allenamento</button>
+      </div>
+    </div>
+
+    <!-- PAGE 2: PROGRESSI -->
+    <div class="page" id="page-progressi">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="number" id="p-sessions">0</div><div class="label">Sessioni totali</div></div>
+        <div class="stat-card"><div class="number" id="p-week">0</div><div class="label">Questa settimana</div></div>
+        <div class="stat-card"><div class="number" id="p-streak">0</div><div class="label">🔥 Streak giorni</div></div>
+        <div class="stat-card"><div class="number" id="p-prs">0</div><div class="label">Personal Record</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚖️ Peso Corporeo</div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1" class="input-row">
+            <label>Peso oggi (kg)</label>
+            <input type="number" id="weight-input" step="0.1" min="40" max="200" placeholder="es. 75.5">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addWeight()" style="margin-bottom:12px">+</button>
+        </div>
+        <div id="weight-trend" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
+        <div class="chart-wrap"><canvas id="weight-chart" height="120"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Progressione Esercizio</div>
+        <div class="input-row">
+          <label>Seleziona esercizio</label>
+          <select id="ex-chart-select" onchange="drawExerciseChart()"></select>
+        </div>
+        <div class="chart-wrap"><canvas id="ex-chart" height="120"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📦 Volume Settimanale</div>
+        <div id="volume-info" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
+        <div class="volume-bars">
+          <div class="vol-bar-wrap"><div class="vol-bar last-week" id="vol-bar-last" style="height:40%"></div><div class="vol-label">Sett. scorsa</div></div>
+          <div class="vol-bar-wrap"><div class="vol-bar this-week" id="vol-bar-this" style="height:60%"></div><div class="vol-label">Questa sett.</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📅 Statistiche Mensili</div>
+        <div class="stats-grid" style="margin-bottom:12px">
+          <div class="stat-card"><div class="number" id="m-sessions" style="font-size:22px">0</div><div class="label">Sessioni</div></div>
+          <div class="stat-card"><div class="number" id="m-prs" style="font-size:22px">0</div><div class="label">PR battuti</div></div>
+          <div class="stat-card"><div class="number" id="m-vol" style="font-size:18px">0</div><div class="label">Volume (kg)</div></div>
+          <div class="stat-card"><div class="number" id="m-dur" style="font-size:18px">--</div><div class="label">Durata media</div></div>
+        </div>
+        <div class="card-title" style="font-size:13px">Giorni allenati</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+          <div class="cal-header">L</div><div class="cal-header">M</div><div class="cal-header">M</div>
+          <div class="cal-header">G</div><div class="cal-header">V</div><div class="cal-header">S</div><div class="cal-header">D</div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: STORICO -->
+    <div class="page" id="page-storico">
+      <div class="card-title" style="margin-bottom:12px">📋 Ultimi 20 allenamenti</div>
+      <div id="history-list"><p style="color:var(--muted);text-align:center;padding:30px">Nessun allenamento salvato</p></div>
+    </div>
+
+    <!-- PAGE 4: DIETA -->
+    <div class="page" id="page-dieta">
+      <div class="card">
+        <div class="card-title">🗓️ Stagione</div>
+        <div class="season-btns">
+          <button class="season-btn" id="btn-estate" onclick="selectSeason('estate')">☀️ Estate</button>
+          <button class="season-btn" id="btn-autunno" onclick="selectSeason('autunno')">🍂 Autunno</button>
+          <button class="season-btn" id="btn-inverno" onclick="selectSeason('inverno')">❄️ Inverno</button>
+          <button class="season-btn" id="btn-primavera" onclick="selectSeason('primavera')">🌸 Primavera</button>
+        </div>
+      </div>
+      <div class="card" id="diet-meals">
+        <div class="card-title">🍽️ Piano Alimentare</div>
+        <div id="meals-content"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔢 Calcolatore Macros</div>
+        <div class="input-row"><label>Peso corporeo (kg)</label><input type="number" id="macro-weight" placeholder="75" min="40" max="200"></div>
+        <div class="input-row"><label>Obiettivo</label>
+          <select id="macro-goal">
+            <option value="massa">💪 Massa</option>
+            <option value="definizione">🔥 Definizione</option>
+            <option value="mantenimento">⚖️ Mantenimento</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="calcMacros()">Calcola</button>
+        <div class="macros-grid" id="macros-result" style="display:none">
+          <div class="macro-item"><div class="mv" id="mac-cal">0</div><div class="ml">Calorie</div></div>
+          <div class="macro-item"><div class="mv" id="mac-pro">0g</div><div class="ml">Proteine</div></div>
+          <div class="macro-item"><div class="mv" id="mac-carb">0g</div><div class="ml">Carboidrati</div></div>
+          <div class="macro-item"><div class="mv" id="mac-fat">0g</div><div class="ml">Grassi</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">💧 Tracker Acqua</div>
+        <div class="water-grid" id="water-grid"></div>
+        <div class="progress-bar" style="margin:8px 0"><div class="progress-fill" id="water-progress" style="width:0%"></div></div>
+        <div style="font-size:13px;color:var(--muted);text-align:center" id="water-label">0 / 8 bicchieri</div>
+        <button class="btn btn-ghost btn-sm btn-full" onclick="resetWater()" style="margin-top:8px">Reset</button>
+      </div>
+      <div class="card">
+        <div class="card-title">🥘 Meal Prep Settimanale</div>
+        <div class="meal-prep-grid" id="meal-prep-grid"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 5: SPESA -->
+    <div class="page" id="page-spesa">
+      <div class="card">
+        <div class="card-title">🛒 Lista della Spesa</div>
+        <div class="season-btns">
+          <button class="season-btn" id="spesa-btn-estate" onclick="selectSpesaSeason('estate')">☀️ Estate</button>
+          <button class="season-btn" id="spesa-btn-autunno" onclick="selectSpesaSeason('autunno')">🍂 Autunno</button>
+          <button class="season-btn" id="spesa-btn-inverno" onclick="selectSpesaSeason('inverno')">❄️ Inverno</button>
+          <button class="season-btn" id="spesa-btn-primavera" onclick="selectSpesaSeason('primavera')">🌸 Primavera</button>
+        </div>
+        <div class="progress-bar" style="margin:8px 0"><div class="progress-fill" id="spesa-progress" style="width:0%"></div></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center" id="spesa-count">0 / 0 articoli</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn btn-ghost btn-sm" onclick="selectAllSpesa()" style="flex:1">Seleziona tutto</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearSpesa()" style="flex:1">Azzera</button>
+        </div>
+        <div id="spesa-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏪 Sempre in Dispensa</div>
+        <div id="pantry-list"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 6: IMPOSTAZIONI -->
+    <div class="page" id="page-impostazioni">
+      <div class="card">
+        <div class="settings-section">
+          <h3>👤 Profilo</h3>
+          <div class="input-row"><label>Nome</label><input type="text" id="s-nome" placeholder="Il tuo nome"></div>
+          <div class="input-row"><label>Peso (kg)</label><input type="number" id="s-peso" min="40" max="200" step="0.1"></div>
+          <div class="input-row"><label>Altezza (cm)</label><input type="number" id="s-altezza" min="140" max="220"></div>
+          <div class="input-row"><label>Età</label><input type="number" id="s-eta" min="10" max="99"></div>
+          <div class="input-row"><label>Obiettivo</label>
+            <select id="s-obiettivo">
+              <option value="massa">💪 Massa</option>
+              <option value="definizione">🔥 Definizione</option>
+              <option value="mantenimento">⚖️ Mantenimento</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="saveProfile()">Salva Profilo</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section">
+          <h3>🔔 Notifiche</h3>
+          <div class="toggle-row">
+            <span class="toggle-label">Abilita notifiche</span>
+            <label class="toggle"><input type="checkbox" id="notif-toggle" onchange="toggleNotif()"><span class="toggle-slider"></span></label>
+          </div>
+          <label style="margin-top:8px">Giorni allenamento</label>
+          <div class="notif-days">
+            <label class="day-check"><input type="checkbox" id="nd-1" value="1" onchange="saveNotifDays()"> Lun</label>
+            <label class="day-check"><input type="checkbox" id="nd-2" value="2" onchange="saveNotifDays()"> Mar</label>
+            <label class="day-check"><input type="checkbox" id="nd-3" value="3" onchange="saveNotifDays()"> Mer</label>
+            <label class="day-check"><input type="checkbox" id="nd-4" value="4" onchange="saveNotifDays()"> Gio</label>
+            <label class="day-check"><input type="checkbox" id="nd-5" value="5" onchange="saveNotifDays()"> Ven</label>
+            <label class="day-check"><input type="checkbox" id="nd-6" value="6" onchange="saveNotifDays()"> Sab</label>
+            <label class="day-check"><input type="checkbox" id="nd-0" value="0" onchange="saveNotifDays()"> Dom</label>
+          </div>
+          <div class="input-row" style="margin-top:10px"><label>Orario reminder</label><input type="time" id="notif-time" value="09:00" onchange="saveNotifTime()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section">
+          <h3>🎨 Tema</h3>
+          <div class="toggle-row">
+            <span class="toggle-label">Modalità chiara</span>
+            <label class="toggle"><input type="checkbox" id="theme-toggle" onchange="toggleTheme()"><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section">
+          <h3>💾 Backup & Ripristino</h3>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="exportData()" style="flex:1">📤 Esporta</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()" style="flex:1">📥 Importa</button>
+          </div>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section">
+          <h3>🔐 Cambio PIN</h3>
+          <div class="input-row"><label>PIN attuale</label><input type="password" id="pin-current" maxlength="4" inputmode="numeric" placeholder="••••"></div>
+          <div class="input-row"><label>Nuovo PIN (4 cifre)</label><input type="password" id="pin-new" maxlength="4" inputmode="numeric" placeholder="••••"></div>
+          <div class="input-row"><label>Conferma nuovo PIN</label><input type="password" id="pin-confirm" maxlength="4" inputmode="numeric" placeholder="••••"></div>
+          <button class="btn btn-primary btn-full" onclick="changePin()">Salva PIN</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section">
+          <h3>ℹ️ Info App</h3>
+          <div style="font-size:13px;color:var(--muted);line-height:2">
+            <div>Versione: <strong style="color:var(--text)">2.0.0</strong></div>
+            <div>Scheda attiva: <strong style="color:var(--primary)" id="info-scheda">A</strong></div>
+            <div>Data inizio scheda: <strong style="color:var(--text)" id="info-start">--</strong></div>
+            <div>Settimana corrente: <strong style="color:var(--text)" id="info-week">1</strong></div>
+          </div>
+          <button class="btn btn-danger btn-sm btn-full" onclick="cambiaScheda()" style="margin-top:10px">🔄 Forza cambio scheda</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="showPage('allena',0)" id="nav-0"><span>🏋️</span>Allena</button>
+    <button class="nav-item" onclick="showPage('progressi',1)" id="nav-1"><span>📈</span>Progressi</button>
+    <button class="nav-item" onclick="showPage('storico',2)" id="nav-2"><span>📋</span>Storico</button>
+    <button class="nav-item" onclick="showPage('dieta',3)" id="nav-3"><span>🥗</span>Dieta</button>
+    <button class="nav-item" onclick="showPage('spesa',4)" id="nav-4"><span>🛒</span>Spesa</button>
+    <button class="nav-item" onclick="showPage('impostazioni',5)" id="nav-5"><span>⚙️</span>Impost.</button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ===== PIN LOCK =====
-const CORRECT_PIN = '0406'; // ← CAMBIA QUI IL TUO PIN
-const PIN_SESSION_KEY = 'gymPinUnlocked';
-let pinInput = '';
 
-function pinPress(digit) {
-  if (pinInput.length >= 4) return;
-  pinInput += digit;
-  updatePinDisplay();
-  if (pinInput.length === 4) {
-    setTimeout(checkPin, 150);
+// ===================== DATA =====================
+const EXERCISES = {
+  A: {
+    PUSH: [
+      {name:'Panca piana con bilanciere', sets:4, reps:'8-10', restSec:90},
+      {name:'Panca inclinata con manubri', sets:3, reps:'10-12', restSec:90},
+      {name:'Shoulder press con manubri', sets:4, reps:'10', restSec:90},
+      {name:'Alzate laterali', sets:3, reps:'12-15', restSec:90},
+      {name:'French press EZ bar', sets:3, reps:'10-12', restSec:90},
+      {name:'Pushdown ai cavi', sets:3, reps:'12', restSec:90}
+    ],
+    PULL: [
+      {name:'Trazioni/Lat machine', sets:4, reps:'8-10', restSec:90},
+      {name:'Rematore con bilanciere', sets:4, reps:'8-10', restSec:90},
+      {name:'Pulley basso', sets:3, reps:'10-12', restSec:90},
+      {name:'Face pull ai cavi', sets:3, reps:'15', restSec:90},
+      {name:'Curl con bilanciere', sets:3, reps:'10-12', restSec:90},
+      {name:'Curl a martello', sets:3, reps:'12', restSec:90}
+    ],
+    LEGS: [
+      {name:'Squat con bilanciere', sets:4, reps:'8-10', restSec:120},
+      {name:'Leg press', sets:3, reps:'10-12', restSec:120},
+      {name:'Romanian deadlift', sets:3, reps:'10', restSec:120},
+      {name:'Leg curl sdraiato', sets:3, reps:'12', restSec:120},
+      {name:'Calf raises', sets:4, reps:'15', restSec:120},
+      {name:'Plank (secondi)', sets:3, reps:'45', restSec:60},
+      {name:'Crunch al cavo', sets:3, reps:'15', restSec:60}
+    ]
+  },
+  B: {
+    PUSH: [
+      {name:'Panca piana con manubri', sets:4, reps:'8-10', restSec:90},
+      {name:'Dip alle parallele', sets:3, reps:'8-12', restSec:90},
+      {name:'Lento avanti con bilanciere', sets:4, reps:'8-10', restSec:90},
+      {name:'Alzate frontali', sets:3, reps:'12', restSec:90},
+      {name:'Skull crusher', sets:3, reps:'10-12', restSec:90},
+      {name:'Cavi incrociati fly', sets:3, reps:'12-15', restSec:90}
+    ],
+    PULL: [
+      {name:'Stacco da terra', sets:4, reps:'6-8', restSec:120},
+      {name:'Trazioni presa stretta', sets:3, reps:'8-10', restSec:90},
+      {name:'Rematore con manubrio', sets:3, reps:'10-12', restSec:90},
+      {name:'Pull over con manubrio', sets:3, reps:'12', restSec:90},
+      {name:'Curl con manubri alternati', sets:3, reps:'10-12', restSec:90},
+      {name:'Curl al cavo basso', sets:3, reps:'12-15', restSec:90}
+    ],
+    LEGS: [
+      {name:'Front squat', sets:4, reps:'8-10', restSec:120},
+      {name:'Affondi con manubri', sets:3, reps:'10-12', restSec:120},
+      {name:'Leg extension', sets:3, reps:'12-15', restSec:120},
+      {name:'Stacco sumo', sets:3, reps:'10', restSec:120},
+      {name:'Calf raises seduto', sets:4, reps:'15-20', restSec:90},
+      {name:'Crunch inverso', sets:3, reps:'15', restSec:60},
+      {name:'Russian twist', sets:3, reps:'20', restSec:60}
+    ]
   }
+};
+
+const DIET = {
+  estate: {
+    title: '☀️ Estate — Light & Idratante',
+    meals: [
+      {name:'🌅 Colazione', options:['Yogurt greco 0% + frutti di bosco + fiocchi d\'avena + miele','Frullato di banana + proteine whey + latte di mandorla','Pane integrale tostato + avocado + uovo sodo x2']},
+      {name:'🍽️ Pranzo', options:['Riso basmati 80g + tonno al naturale + pomodorini + olio EVO','Insalata di pollo grigliato + lattuga + cetrioli + limone','Pasta integrale 80g + salmone + zucchine + pomodorini']},
+      {name:'⚡ Pre-allenamento', options:['Banana + mandarla 30g','Pane integrale + burro arachidi 20g','Frutta secca 40g + yogurt greco']},
+      {name:'🌙 Cena', options:['Pesce spada grigliato 200g + insalata mista + patate al forno','Pollo marinato 200g + zucchine grigliate + riso 60g','Salmone al vapore 180g + broccoli + riso basmati 60g']},
+      {name:'🌛 Spuntino serale', options:['Ricotta light 100g + miele','Yogurt greco 0% + kiwi','Anguria 300g + arachidi 20g']}
+    ]
+  },
+  autunno: {
+    title: '🍂 Autunno — Transition Bulk',
+    meals: [
+      {name:'🌅 Colazione', options:['Porridge avena 80g + banana + burro arachidi + cannella','Uova strapazzate x3 + pane di segale + mele','Yogurt greco + granola 40g + pere + noci']},
+      {name:'🍽️ Pranzo', options:['Riso basmati 100g + pollo 150g + broccoli + olio EVO','Pasta integrale 100g + macinato tacchino + pomodoro','Patate dolci 200g + bistecca manzo 180g + spinaci saltati']},
+      {name:'⚡ Pre-allenamento', options:['Avena + banana + proteine','Pane di segale + burro arachidi + miele','Yogurt greco + fiocchi avena + frutta secca']},
+      {name:'🌙 Cena', options:['Salmone 180g + lenticchie 150g cotti + verdure al vapore','Pollo 200g + riso integrale 80g + funghi saltati','Bistecca 200g + patate dolci 150g + insalata']},
+      {name:'🌛 Spuntino serale', options:['Fiocchi di latte + noci + miele','Ricotta + cacao amaro + banana','Yogurt greco + frutta di stagione']}
+    ]
+  },
+  inverno: {
+    title: '❄️ Inverno — Full Bulk',
+    meals: [
+      {name:'🌅 Colazione', options:['Porridge 100g + banana + burro arachidi + latte intero','Uova strapazzate x4 + pane integrale + avocado + formaggio','Frullato ipercalorico: latte intero + avena + banana + proteine + arachidi']},
+      {name:'🍽️ Pranzo', options:['Pasta 120g + macinato manzo 150g + pomodoro + parmigiano','Riso integrale 120g + pollo 180g + patate + olio EVO','Bistecca 250g + patate al forno 200g + broccoli + burro']},
+      {name:'⚡ Pre-allenamento', options:['Riso + pollo 100g + banana','Panini integrali + tonno + avocado','Avena + latte intero + proteine + cioccolato fondente']},
+      {name:'🌙 Cena', options:['Salmone 200g + riso 100g + spinaci + burro','Pollo 220g + fagioli borlotti + cavolfiore gratinato','Tacchino 200g + pasta 100g + verdure miste']},
+      {name:'🌛 Spuntino serale', options:['Ricotta intera + miele + noci + cioccolato fondente 80%','Latte intero + avena + banana + burro arachidi','Yogurt greco intero + granola + miele']}
+    ]
+  },
+  primavera: {
+    title: '🌸 Primavera — Cut',
+    meals: [
+      {name:'🌅 Colazione', options:['Yogurt greco 0% + fragole + avena 40g','Uova sode x3 + pane integrale + kiwi','Fiocchi di latte + mirtilli + mandorle 20g']},
+      {name:'🍽️ Pranzo', options:['Pollo 180g + riso basmati 80g + asparagi al vapore','Merluzzo al forno 200g + insalata mista + limone','Tonno + pasta integrale 70g + zucchine + limone']},
+      {name:'⚡ Pre-allenamento', options:['Banana + proteine whey','Pane integrale + ricotta magra + miele','Kiwi x2 + mandorle 20g']},
+      {name:'🌙 Cena', options:['Gamberi 200g + spinaci saltati + limone','Tacchino 180g + zucchine grigliate + radicchio','Merluzzo 200g + broccoli al vapore + ceci 80g']},
+      {name:'🌛 Spuntino serale', options:['Ricotta magra + cannella + fragole','Yogurt greco 0% + kiwi','Fiocchi di latte 100g + mirtilli']}
+    ]
+  }
+};
+
+const MEAL_PREP = {
+  estate: ['Pollo grigliato x 600g', 'Riso basmati 400g', 'Verdure grigliate', 'Uova sode x8', 'Insalata lavata', 'Frutta tagliata', 'Yogurt porzionati'],
+  autunno: ['Pollo al forno x 600g', 'Riso integrale 500g', 'Broccoli al vapore', 'Uova sode x6', 'Lenticchie cotte 400g', 'Patate dolci', 'Funghi saltati'],
+  inverno: ['Pollo/tacchino x800g', 'Pasta/riso 600g', 'Verdure miste', 'Uova sode x8', 'Fagioli cotti 500g', 'Patate al forno', 'Minestra'],
+  primavera: ['Pollo grigliato x 500g', 'Riso basmati 400g', 'Asparagi al vapore', 'Uova sode x6', 'Ceci 300g', 'Verdure crude', 'Frutta fresca']
+};
+
+const SPESA = {
+  estate: [
+    {name:'Pollo 1kg', tag:'fresco'},{name:'Tonno 6 scatolette', tag:'scorta'},{name:'Salmone 400g', tag:'fresco'},
+    {name:'Pesce spada 300g', tag:'fresco'},{name:'Uova 12pz', tag:'fresco'},{name:'Yogurt greco 0% 4x200g', tag:'fresco'},
+    {name:'Ricotta light 250g', tag:'fresco'},{name:'Riso basmati 1kg', tag:'scorta'},{name:'Pasta integrale 500g', tag:'scorta'},
+    {name:'Pane integrale', tag:'fresco'},{name:'Avena 500g', tag:'scorta'},{name:'Anguria', tag:'stagionale'},
+    {name:'Melone', tag:'stagionale'},{name:'Pomodorini 500g', tag:'stagionale'},{name:'Cetrioli 3pz', tag:'stagionale'},
+    {name:'Lattuga/rucola', tag:'stagionale'},{name:'Zucchine 4pz', tag:'stagionale'},{name:'Banane 6pz', tag:'fresco'},
+    {name:'Fragole/frutti di bosco 300g', tag:'stagionale'},{name:'Olio EVO', tag:'base'},{name:'Mandorle/arachidi 200g', tag:'scorta'},
+    {name:'Avocado 2pz', tag:'stagionale'}
+  ],
+  autunno: [
+    {name:'Pollo 1kg', tag:'fresco'},{name:'Macinato tacchino 500g', tag:'fresco'},{name:'Salmone 400g', tag:'fresco'},
+    {name:'Bistecca manzo 400g', tag:'fresco'},{name:'Uova 12pz', tag:'fresco'},{name:'Yogurt greco 4x', tag:'fresco'},
+    {name:'Ricotta 250g', tag:'fresco'},{name:'Riso basmati 1kg', tag:'scorta'},{name:'Pasta integrale 1kg', tag:'scorta'},
+    {name:'Pane di segale', tag:'fresco'},{name:'Avena 500g', tag:'scorta'},{name:'Patate dolci 1kg', tag:'stagionale'},
+    {name:'Broccoli 500g', tag:'stagionale'},{name:'Spinaci 300g', tag:'fresco'},{name:'Funghi 250g', tag:'stagionale'},
+    {name:'Mele 6pz', tag:'stagionale'},{name:'Pere 4pz', tag:'stagionale'},{name:'Banane 6pz', tag:'fresco'},
+    {name:'Lenticchie 2 barattoli', tag:'scorta'},{name:'Ceci 2 barattoli', tag:'scorta'},{name:'Fagioli neri 1 barattolo', tag:'scorta'},
+    {name:'Olio EVO', tag:'base'},{name:'Noci/mandorle 300g', tag:'scorta'},{name:'Burro arachidi', tag:'scorta'}
+  ],
+  inverno: [
+    {name:'Pollo 1.5kg', tag:'fresco'},{name:'Bistecca manzo 600g', tag:'fresco'},{name:'Salmone 500g', tag:'fresco'},
+    {name:'Macinato manzo 500g', tag:'fresco'},{name:'Tacchino 400g', tag:'fresco'},{name:'Uova 18pz', tag:'fresco'},
+    {name:'Ricotta intera 500g', tag:'fresco'},{name:'Latte intero 1L', tag:'fresco'},{name:'Riso integrale 1kg', tag:'scorta'},
+    {name:'Pasta 1.5kg', tag:'scorta'},{name:'Pane integrale', tag:'fresco'},{name:'Avena 1kg', tag:'scorta'},
+    {name:'Patate 1.5kg', tag:'stagionale'},{name:'Patate dolci 1kg', tag:'stagionale'},{name:'Broccoli/cavolfiore 700g', tag:'stagionale'},
+    {name:'Spinaci surgelati 500g', tag:'scorta'},{name:'Verza/cavolo', tag:'stagionale'},{name:'Carote 500g', tag:'stagionale'},
+    {name:'Banane 8pz', tag:'fresco'},{name:'Mele/pere 6pz', tag:'stagionale'},{name:'Arance/kiwi 6pz', tag:'stagionale'},
+    {name:'Fagioli borlotti 2 bar', tag:'scorta'},{name:'Ceci 2 bar', tag:'scorta'},{name:'Lenticchie 2 bar', tag:'scorta'},
+    {name:'Olio EVO', tag:'base'},{name:'Noci/arachidi 400g', tag:'scorta'},{name:'Burro arachidi', tag:'scorta'},
+    {name:'Cioccolato fondente 80% 100g', tag:'scorta'},{name:'Miele', tag:'base'}
+  ],
+  primavera: [
+    {name:'Pollo 1kg', tag:'fresco'},{name:'Tacchino 500g', tag:'fresco'},{name:'Merluzzo 400g', tag:'fresco'},
+    {name:'Tonno 6 scatolette', tag:'scorta'},{name:'Gamberi surgelati 300g', tag:'scorta'},{name:'Uova 12pz', tag:'fresco'},
+    {name:'Yogurt greco 0% 4x', tag:'fresco'},{name:'Fiocchi di latte 250g', tag:'fresco'},{name:'Ricotta magra 250g', tag:'fresco'},
+    {name:'Riso basmati 1kg', tag:'scorta'},{name:'Pasta integrale 500g', tag:'scorta'},{name:'Pane integrale', tag:'fresco'},
+    {name:'Avena 500g', tag:'scorta'},{name:'Asparagi 500g', tag:'stagionale'},{name:'Spinaci freschi 300g', tag:'stagionale'},
+    {name:'Zucchine 4pz', tag:'stagionale'},{name:'Radicchio/lattuga', tag:'stagionale'},{name:'Fragole 500g', tag:'stagionale'},
+    {name:'Kiwi 6pz', tag:'stagionale'},{name:'Banane 6pz', tag:'fresco'},{name:'Mirtilli 300g', tag:'stagionale'},
+    {name:'Ceci 2 bar', tag:'scorta'},{name:'Olio EVO', tag:'base'},{name:'Mandorle 200g', tag:'scorta'},
+    {name:'Latte di mandorla 1L', tag:'scorta'}
+  ]
+};
+
+const PANTRY = [
+  {name:'Sale rosa', tag:'base'},{name:'Olio EVO', tag:'base'},{name:'Cacao amaro', tag:'base'},
+  {name:'Miele', tag:'base'},{name:'Cannella', tag:'base'},{name:'Aglio', tag:'base'},
+  {name:'Salsa pomodoro 2 bar', tag:'scorta'},{name:'Paprika', tag:'base'},{name:'Dado/brodo', tag:'base'},
+  {name:'Proteine Whey (opzionale)', tag:'scorta'}
+];
+
+// ===================== STATE =====================
+let currentDay = null;
+let currentScheda = 'A';
+let chronoInterval = null;
+let chronoStart = null;
+let chronoElapsed = 0;
+let restTimers = {};
+let currentSeason = 'estate';
+let currentSpesaSeason = 'estate';
+let workoutSessionNotes = {};
+
+// ===================== PIN =====================
+let pinEntry = '';
+const CORRECT_PIN_KEY = 'gymPin';
+function getPin() { return localStorage.getItem(CORRECT_PIN_KEY) || '0406'; }
+
+function pinPress(val) {
+  if (val === 'del') {
+    pinEntry = pinEntry.slice(0,-1);
+  } else if (val === 'ok') {
+    checkPin();
+    return;
+  } else {
+    if (pinEntry.length >= 4) return;
+    pinEntry += val;
+    if (pinEntry.length === 4) { setTimeout(checkPin, 120); }
+  }
+  updatePinDots();
 }
 
-function pinDel() {
-  pinInput = pinInput.slice(0, -1);
-  updatePinDisplay();
-  document.getElementById('pin-error').textContent = '';
-}
-
-function updatePinDisplay() {
-  for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById('dot-' + i);
-    dot.className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
+function updatePinDots() {
+  for (let i=0;i<4;i++) {
+    document.getElementById('dot'+i).classList.toggle('filled', i < pinEntry.length);
   }
 }
 
 function checkPin() {
-  if (pinInput === CORRECT_PIN) {
-    sessionStorage.setItem(PIN_SESSION_KEY, '1');
-    const screen = document.getElementById('pin-screen');
-    screen.style.opacity = '0';
-    screen.style.transition = 'opacity 0.4s';
-    setTimeout(() => screen.style.display = 'none', 400);
+  if (pinEntry === getPin()) {
+    sessionStorage.setItem('gymPinUnlocked','1');
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    initApp();
   } else {
-    for (let i = 0; i < 4; i++) {
-      document.getElementById('dot-' + i).className = 'pin-dot error';
-    }
-    document.getElementById('pin-error').textContent = 'PIN errato. Riprova.';
-    setTimeout(() => {
-      pinInput = '';
-      updatePinDisplay();
-      document.getElementById('pin-error').textContent = '';
-    }, 800);
+    document.getElementById('pin-error').textContent = 'PIN errato, riprova';
+    pinEntry = '';
+    updatePinDots();
+    setTimeout(() => document.getElementById('pin-error').textContent = '', 1500);
   }
 }
 
-// Controlla se già sbloccato in questa sessione
-if (sessionStorage.getItem(PIN_SESSION_KEY) === '1') {
-  document.getElementById('pin-screen').style.display = 'none';
-}
-</script>
-
-<header>
-  <h1>💪 GymTracker</h1>
-  <p id="header-date"></p>
-</header>
-
-<nav>
-  <button class="active" onclick="showPage('allenamento')">🏋️ Allena</button>
-  <button onclick="showPage('progressi')">📈 Progressi</button>
-  <button onclick="showPage('storico')">📋 Storico</button>
-  <button onclick="showPage('dieta')">🥗 Dieta</button>
-  <button onclick="showPage('spesa')">🛒 Spesa</button>
-</nav>
-
-<div id="toast" class="toast"></div>
-
-<!-- PAGE: ALLENAMENTO -->
-<div id="page-allenamento" class="page active">
-  <!-- Banner scheda attiva -->
-  <div id="scheda-banner" class="card" style="padding:12px 16px;margin-bottom:10px;border-left:4px solid #FF9800;">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-size:0.7rem;color:#FF9800;font-weight:bold;text-transform:uppercase;">Scheda attiva</div>
-        <div id="scheda-label" style="font-size:1rem;color:#fff;font-weight:bold;margin-top:2px;">Scheda A</div>
-        <div id="scheda-weeks" style="font-size:0.72rem;color:#888;margin-top:2px;"></div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:0.7rem;color:#888;">Settimana</div>
-        <div id="scheda-week-num" style="font-size:1.6rem;font-weight:bold;color:#90CAF9;line-height:1;">1</div>
-        <div style="font-size:0.65rem;color:#888;">di 8</div>
-      </div>
-    </div>
-    <div class="progress-bar-wrap" style="margin-top:8px;"><div class="progress-bar" id="scheda-progress-bar" style="background:#FF9800;width:12%;"></div></div>
-  </div>
-  <!-- Alert cambio scheda -->
-  <div id="cambio-scheda-alert" class="card" style="display:none;border:2px solid #FF9800;background:#2a1a00;padding:14px;">
-    <div style="font-size:1rem;font-weight:bold;color:#FF9800;margin-bottom:6px;">🔄 Tempo di cambiare scheda!</div>
-    <div style="font-size:0.82rem;color:#ccc;margin-bottom:10px;">Hai completato 8 settimane. Passa alla scheda successiva per continuare a progredire.</div>
-    <button onclick="cambiaScheda()" style="width:100%;padding:12px;background:#FF9800;border:none;border-radius:8px;color:#000;font-weight:bold;font-size:0.9rem;cursor:pointer;">✅ Inizia nuova scheda</button>
-  </div>
-  <div class="card">
-    <h2 id="scheda-day-title">Scegli il giorno di oggi</h2>
-    <button class="day-btn" id="btn-push" onclick="selectDay('push')">
-      🔴 Giorno A — PUSH
-      <span>Petto · Spalle · Tricipiti</span>
-    </button>
-    <button class="day-btn" id="btn-pull" onclick="selectDay('pull')">
-      🔵 Giorno B — PULL
-      <span>Schiena · Bicipiti</span>
-    </button>
-    <button class="day-btn" id="btn-legs" onclick="selectDay('legs')">
-      🟢 Giorno C — LEGS + Core
-      <span>Gambe · Addome</span>
-    </button>
-  </div>
-  <div id="workout-form" style="display:none;">
-    <div class="card">
-      <h2 id="workout-title"></h2>
-      <div id="exercises-list"></div>
-      <button class="btn-primary" onclick="saveWorkout()">💾 Salva Allenamento</button>
-      <button class="btn-secondary" onclick="cancelWorkout()">✕ Annulla</button>
-    </div>
-  </div>
-</div>
-
-<!-- PAGE: PROGRESSI -->
-<div id="page-progressi" class="page">
-  <div class="card">
-    <h2>📊 Le tue statistiche</h2>
-    <div class="stat-grid" id="stats-grid">
-      <div class="stat-box"><div class="val" id="stat-sessions">0</div><div class="lbl">Sessioni totali</div></div>
-      <div class="stat-box"><div class="val" id="stat-week">0</div><div class="lbl">Questa settimana</div></div>
-      <div class="stat-box"><div class="val" id="stat-streak">0</div><div class="lbl">Streak giorni</div></div>
-      <div class="stat-box"><div class="val" id="stat-prs">0</div><div class="lbl">Personal Record</div></div>
-    </div>
-  </div>
-  <div class="card">
-    <h2>🏆 Massimali per esercizio</h2>
-    <div id="pr-list"></div>
-  </div>
-  <div class="card">
-    <h2>📅 Prossima sessione consigliata</h2>
-    <div id="next-session" style="padding:10px;color:#90CAF9;font-size:0.9rem;"></div>
-  </div>
-</div>
-
-<!-- PAGE: STORICO -->
-<div id="page-storico" class="page">
-  <div class="card">
-    <h2>📋 Ultimi allenamenti</h2>
-    <div id="history-list"><p style="color:#666;font-size:0.85rem;">Nessun allenamento registrato.</p></div>
-  </div>
-  <button class="btn-secondary" onclick="clearHistory()" style="margin:0 16px;width:calc(100% - 32px);">🗑️ Cancella tutto lo storico</button>
-</div>
-
-<!-- PAGE: DIETA -->
-<div id="page-dieta" class="page">
-
-  <!-- Selettore stagione -->
-  <div class="card" style="padding:12px;">
-    <h2 style="margin-bottom:10px;">🗓️ Scegli il periodo</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="season-selector">
-      <button class="season-btn active" onclick="showSeason('estate')"   id="btn-estate">☀️ Estate</button>
-      <button class="season-btn"        onclick="showSeason('autunno')"  id="btn-autunno">🍂 Autunno</button>
-      <button class="season-btn"        onclick="showSeason('inverno')"  id="btn-inverno">❄️ Inverno</button>
-      <button class="season-btn"        onclick="showSeason('primavera')" id="btn-primavera">🌸 Primavera</button>
-    </div>
-  </div>
-
-  <!-- ESTATE -->
-  <div id="diet-estate" class="diet-season">
-    <div class="card">
-      <h2>☀️ Dieta Estate — Definizione &amp; Leggerezza</h2>
-      <p style="font-size:0.78rem;color:#FF9800;margin-bottom:12px;">🎯 Obiettivo: mantenere massa, ridurre grasso, restare idratati. Calorie leggermente ridotte.</p>
-      <div class="diet-meal" style="border-left-color:#FF9800;">
-        <h4 style="color:#FF9800;">🌅 Colazione</h4>
-        <p><b>Op.1:</b> 200g yogurt greco + fragole/anguria + 40g granola + 1 cucchiaio miele<br>
-        <b>Op.2:</b> 3 uova strapazzate + 1 fetta pane integrale + succo d'arancia fresco<br>
-        <b>Op.3:</b> Smoothie: latte di mandorla + banana + spinaci + proteine in polvere</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF9800;">
-        <h4 style="color:#FF9800;">🕛 Pranzo</h4>
-        <p><b>Op.1:</b> 130g riso basmati + 180g tonno al naturale + pomodorini + cetriolo + olio EVO<br>
-        <b>Op.2:</b> Insalata grande: 200g petto pollo grigliato + lattuga + mais + avocado + limone<br>
-        <b>Op.3:</b> 130g pasta fredda + tonno + olive + capperi + basilico</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF9800;">
-        <h4 style="color:#FF9800;">🍉 Spuntino</h4>
-        <p>200g anguria o melone + 20g mandorle<br>
-        <i>oppure</i> frullato proteico con acqua di cocco</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF9800;">
-        <h4 style="color:#FF9800;">🌙 Cena</h4>
-        <p><b>Op.1:</b> 200g pesce spada/salmone alla griglia + insalata mista + 100g patate al forno<br>
-        <b>Op.2:</b> 200g pollo alle erbe aromatiche + zucchine grigliate + pomodori<br>
-        <b>Op.3:</b> 4 uova in camicia + 200g verdure grigliate + 1 fetta pane integrale</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF9800;">
-        <h4 style="color:#FF9800;">💧 Idratazione estate</h4>
-        <p>Bevi <b>3–3.5L</b> al giorno. Aggiungi elettroliti (sale rosa, limone) se sudi molto.<br>
-        Evita bibite zuccherate — sostituiscile con acqua tonica o acqua frizzante + limone.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- AUTUNNO -->
-  <div id="diet-autunno" class="diet-season" style="display:none;">
-    <div class="card">
-      <h2>🍂 Dieta Autunno — Transizione &amp; Ricostruzione</h2>
-      <p style="font-size:0.78rem;color:#FF7043;margin-bottom:12px;">🎯 Obiettivo: tornare in bulk moderato dopo l'estate. Aumenta carboidrati e calorie totali.</p>
-      <div class="diet-meal" style="border-left-color:#FF7043;">
-        <h4 style="color:#FF7043;">🌅 Colazione</h4>
-        <p><b>Op.1:</b> 80g avena cotta nel latte + 1 mela + cannella + 30g noci + miele<br>
-        <b>Op.2:</b> 4 uova strapazzate + 2 fette pane integrale tostato + 1 kiwi<br>
-        <b>Op.3:</b> Pancakes proteici (2 uova + 50g avena + banana schiacciata) + sciroppo d'acero</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF7043;">
-        <h4 style="color:#FF7043;">🕛 Pranzo</h4>
-        <p><b>Op.1:</b> 160g riso + 200g pollo al forno con paprika + broccoli al vapore<br>
-        <b>Op.2:</b> 160g pasta integrale + ragù di tacchino (200g macinato) + parmigiano<br>
-        <b>Op.3:</b> Zuppa di lenticchie (200g) + 1 fetta pane di segale + 150g tacchino</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF7043;">
-        <h4 style="color:#FF7043;">🍎 Spuntino</h4>
-        <p>1 mela o pera + 30g mandorle/noci<br>
-        <i>oppure</i> 200g yogurt greco + 1 cucchiaio burro d'arachidi</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF7043;">
-        <h4 style="color:#FF7043;">🌙 Cena</h4>
-        <p><b>Op.1:</b> 220g salmone al forno + 200g patate dolci al forno + fagiolini<br>
-        <b>Op.2:</b> 220g bistecca di manzo + 200g riso + verdure saltate<br>
-        <b>Op.3:</b> Zuppa di ceci e spinaci (300g) + 150g petto pollo + 1 fetta pane</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#FF7043;">
-        <h4 style="color:#FF7043;">🌛 Spuntino serale</h4>
-        <p>200g ricotta + cacao amaro + miele + 30g noci</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- INVERNO -->
-  <div id="diet-inverno" class="diet-season" style="display:none;">
-    <div class="card">
-      <h2>❄️ Dieta Inverno — Bulk &amp; Forza Massima</h2>
-      <p style="font-size:0.78rem;color:#90CAF9;margin-bottom:12px;">🎯 Obiettivo: massima crescita muscolare. Surplus calorico di 300–400 kcal. Carboidrati alti.</p>
-      <div class="diet-meal" style="border-left-color:#90CAF9;">
-        <h4 style="color:#90CAF9;">🌅 Colazione</h4>
-        <p><b>Op.1:</b> 100g avena + latte intero + 2 uova + banana + 30g burro arachidi + miele<br>
-        <b>Op.2:</b> 4 uova + 3 fette pane integrale tostato + 1 avocado + succo arancia<br>
-        <b>Op.3:</b> French toast proteico (3 uova + 3 fette pane) + yogurt greco + frutti di bosco</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#90CAF9;">
-        <h4 style="color:#90CAF9;">🕛 Pranzo</h4>
-        <p><b>Op.1:</b> 180g riso + 250g pollo al forno con spezie + 100g fagioli neri<br>
-        <b>Op.2:</b> 180g pasta + 200g manzo macinato + salsa pomodoro + parmigiano<br>
-        <b>Op.3:</b> 200g risotto con pollo e funghi (veloce in padella)</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#90CAF9;">
-        <h4 style="color:#90CAF9;">🍫 Spuntino</h4>
-        <p>1 banana + 40g noci/arachidi + 1 quadratino cioccolato fondente 80%<br>
-        <i>oppure</i> frullato: latte intero + banana + 30g avena + 30g proteine whey</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#90CAF9;">
-        <h4 style="color:#90CAF9;">🌙 Cena</h4>
-        <p><b>Op.1:</b> 250g salmone + 250g patate al forno + broccoli + olio EVO<br>
-        <b>Op.2:</b> 250g bistecca manzo/vitello + 200g riso integrale + insalata<br>
-        <b>Op.3:</b> Pasta e fagioli densa (200g pasta + 300g fagioli) + 150g tacchino</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#90CAF9;">
-        <h4 style="color:#90CAF9;">🌛 Spuntino serale</h4>
-        <p>250g ricotta intera + miele + 30g noci + cacao amaro<br>
-        <i>oppure</i> 2 uova sode + 1 fetta pane integrale</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- PRIMAVERA -->
-  <div id="diet-primavera" class="diet-season" style="display:none;">
-    <div class="card">
-      <h2>🌸 Dieta Primavera — Cut &amp; Definizione</h2>
-      <p style="font-size:0.78rem;color:#81C784;margin-bottom:12px;">🎯 Obiettivo: eliminare il grasso guadagnato in inverno, mantenere la massa. Deficit calorico moderato.</p>
-      <div class="diet-meal" style="border-left-color:#81C784;">
-        <h4 style="color:#81C784;">🌅 Colazione</h4>
-        <p><b>Op.1:</b> 3 uova + albumi + 1 fetta pane integrale + frutta di stagione (fragole, kiwi)<br>
-        <b>Op.2:</b> 170g yogurt greco 0% + 50g avena + 1 cucchiaino miele + mirtilli<br>
-        <b>Op.3:</b> Smoothie verde: spinaci + banana + latte di mandorla + 25g proteine</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#81C784;">
-        <h4 style="color:#81C784;">🕛 Pranzo</h4>
-        <p><b>Op.1:</b> 120g riso basmati + 200g pollo grigliato + asparagi al vapore<br>
-        <b>Op.2:</b> Insalata proteica: 200g tonno + ceci 150g + radicchio + limone + olio EVO<br>
-        <b>Op.3:</b> 120g pasta integrale + gamberi saltati + zucchine + aglio</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#81C784;">
-        <h4 style="color:#81C784;">🍓 Spuntino</h4>
-        <p>200g fragole o frutti di bosco + 20g mandorle<br>
-        <i>oppure</i> 150g fiocchi di latte + 1 kiwi</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#81C784;">
-        <h4 style="color:#81C784;">🌙 Cena</h4>
-        <p><b>Op.1:</b> 200g pesce bianco al forno (merluzzo/branzino) + 200g verdure grigliate<br>
-        <b>Op.2:</b> 200g petto tacchino + insalata mista grande + 100g patate lesse<br>
-        <b>Op.3:</b> Frittata 4 albumi + 2 uova intere + spinaci + 100g riso</p>
-      </div>
-      <div class="diet-meal" style="border-left-color:#81C784;">
-        <h4 style="color:#81C784;">🌛 Spuntino serale</h4>
-        <p>200g yogurt greco 0% + cannella + 1 cucchiaino miele<br>
-        <i>oppure</i> 150g ricotta magra + cacao amaro</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Regole comuni -->
-  <div class="card">
-    <h2>💧 Regole valide tutto l'anno</h2>
-    <p style="font-size:0.82rem;color:#ccc;line-height:1.8;">
-      ✅ Proteine: <b>2g × kg</b> di peso corporeo ogni giorno<br>
-      ✅ Giorni di allenamento: mangia di più (+200 kcal)<br>
-      ✅ Non saltare i carboidrati — sono benzina per i muscoli<br>
-      ✅ Costanza > perfezione — 1 sgarro non rovina nulla<br>
-      ✅ Dormi 7–8 ore — è lì che cresci davvero<br>
-      ✅ <b>Estate/Primavera:</b> deficit 200–300 kcal | <b>Inverno/Autunno:</b> surplus 200–400 kcal
-    </p>
-  </div>
-
-</div>
-
-<!-- PAGE: SPESA -->
-<div id="page-spesa" class="page">
-
-  <!-- Filtro stagione -->
-  <div class="card" style="padding:12px;">
-    <h2 style="margin-bottom:10px;">🛒 Lista della Spesa</h2>
-    <p style="font-size:0.78rem;color:#888;margin-bottom:10px;">Basata sulla tua dieta stagionale. Spunta quello che hai già.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="spesa-season-selector">
-      <button class="season-btn active" onclick="showSpesa('estate')"    id="spesa-btn-estate">☀️ Estate</button>
-      <button class="season-btn"        onclick="showSpesa('autunno')"   id="spesa-btn-autunno">🍂 Autunno</button>
-      <button class="season-btn"        onclick="showSpesa('inverno')"   id="spesa-btn-inverno">❄️ Inverno</button>
-      <button class="season-btn"        onclick="showSpesa('primavera')" id="spesa-btn-primavera">🌸 Primavera</button>
-    </div>
-  </div>
-
-  <!-- Barra progresso spesa -->
-  <div class="card" style="padding:12px 16px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <span style="font-size:0.82rem;color:#888;">Prodotti nel carrello</span>
-      <span id="spesa-counter" style="font-size:0.82rem;color:#90CAF9;font-weight:bold;">0 / 0</span>
-    </div>
-    <div class="progress-bar-wrap"><div class="progress-bar" id="spesa-progress" style="width:0%;background:#4CAF50;"></div></div>
-    <div style="display:flex;gap:8px;margin-top:10px;">
-      <button onclick="checkAllSpesa()" style="flex:1;padding:9px;background:#1a3a1a;border:1px solid #4CAF50;border-radius:8px;color:#4CAF50;font-size:0.8rem;cursor:pointer;">✅ Seleziona tutto</button>
-      <button onclick="clearSpesa()"    style="flex:1;padding:9px;background:#1e1e2e;border:1px solid #444;border-radius:8px;color:#888;font-size:0.8rem;cursor:pointer;">🔄 Azzera</button>
-    </div>
-  </div>
-
-  <!-- Liste per stagione -->
-  <div id="spesa-estate"    class="spesa-list"></div>
-  <div id="spesa-autunno"   class="spesa-list" style="display:none;"></div>
-  <div id="spesa-inverno"   class="spesa-list" style="display:none;"></div>
-  <div id="spesa-primavera" class="spesa-list" style="display:none;"></div>
-
-  <!-- Prodotti sempre utili -->
-  <div class="card">
-    <h2 style="margin-bottom:10px;">📦 Sempre in dispensa</h2>
-    <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">Prodotti base da non far mai mancare</p>
-    <div id="spesa-base-list"></div>
-  </div>
-
-</div>
-
-<script>
-const WORKOUTS = {
-  // === SCHEDA A (settimane 1-8) ===
-  push: {
-    name: '🔴 PUSH — Petto, Spalle, Tricipiti',
-    badge: 'push', scheda: 'A',
-    restSec: 90,
-    exercises: [
-      { name: 'Panca piana con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'bench press panca piana' },
-      { name: 'Panca inclinata con manubri', sets: 3, reps: '10-12', targetReps: 12, ytName: 'panca inclinata manubri petto' },
-      { name: 'Shoulder press con manubri', sets: 4, reps: '10', targetReps: 10, ytName: 'shoulder press manubri spalle' },
-      { name: 'Alzate laterali', sets: 3, reps: '12-15', targetReps: 15, ytName: 'alzate laterali manubri spalle' },
-      { name: 'French press (EZ bar)', sets: 3, reps: '10-12', targetReps: 12, ytName: 'french press EZ bar tricipiti' },
-      { name: 'Pushdown ai cavi', sets: 3, reps: '12', targetReps: 12, ytName: 'pushdown cavi tricipiti' }
-    ]
-  },
-  pull: {
-    name: '🔵 PULL — Schiena, Bicipiti',
-    badge: 'pull', scheda: 'A',
-    restSec: 90,
-    exercises: [
-      { name: 'Trazioni / Lat machine', sets: 4, reps: '8-10', targetReps: 10, ytName: 'lat machine esecuzione schiena' },
-      { name: 'Rematore con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'rematore bilanciere schiena' },
-      { name: 'Pulley basso', sets: 3, reps: '10-12', targetReps: 12, ytName: 'pulley basso cavi schiena' },
-      { name: 'Face pull ai cavi', sets: 3, reps: '15', targetReps: 15, ytName: 'face pull cavi spalle posteriori' },
-      { name: 'Curl con bilanciere', sets: 3, reps: '10-12', targetReps: 12, ytName: 'curl bilanciere bicipiti' },
-      { name: 'Curl a martello', sets: 3, reps: '12', targetReps: 12, ytName: 'curl martello manubri bicipiti' }
-    ]
-  },
-  legs: {
-    name: '🟢 LEGS + Core — Gambe, Addome',
-    badge: 'legs', scheda: 'A',
-    restSec: 120,
-    exercises: [
-      { name: 'Squat con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'squat bilanciere tecnica gambe' },
-      { name: 'Leg press', sets: 3, reps: '10-12', targetReps: 12, ytName: 'leg press macchina gambe esecuzione' },
-      { name: 'Romanian deadlift', sets: 3, reps: '10', targetReps: 10, ytName: 'romanian deadlift stacco rumeno femorali' },
-      { name: 'Leg curl sdraiato', sets: 3, reps: '12', targetReps: 12, ytName: 'leg curl sdraiato femorali macchina' },
-      { name: 'Calf raises', sets: 4, reps: '15', targetReps: 15, ytName: 'calf raises polpacci macchina' },
-      { name: 'Plank (secondi)', sets: 3, reps: '45', targetReps: 45, ytName: 'plank core addome tecnica' },
-      { name: 'Crunch al cavo', sets: 3, reps: '15', targetReps: 15, ytName: 'crunch al cavo addominali' }
-    ]
-  },
-  // === SCHEDA B (settimane 9-16) ===
-  push_b: {
-    name: '🔴 PUSH B — Petto, Spalle, Tricipiti',
-    badge: 'push', scheda: 'B',
-    restSec: 90,
-    exercises: [
-      { name: 'Panca piana con manubri', sets: 4, reps: '8-10', targetReps: 10, ytName: 'panca piana manubri petto' },
-      { name: 'Dip alle parallele', sets: 3, reps: '8-12', targetReps: 12, ytName: 'dip parallele tricipiti petto' },
-      { name: 'Lento avanti con bilanciere', sets: 4, reps: '8-10', targetReps: 10, ytName: 'lento avanti bilanciere spalle' },
-      { name: 'Alzate frontali', sets: 3, reps: '12', targetReps: 12, ytName: 'alzate frontali manubri spalle anteriori' },
-      { name: 'Skull crusher', sets: 3, reps: '10-12', targetReps: 12, ytName: 'skull crusher tricipiti EZ bar' },
-      { name: 'Cavi incrociati (fly)', sets: 3, reps: '12-15', targetReps: 15, ytName: 'cavi incrociati fly petto' }
-    ]
-  },
-  pull_b: {
-    name: '🔵 PULL B — Schiena, Bicipiti',
-    badge: 'pull', scheda: 'B',
-    restSec: 90,
-    exercises: [
-      { name: 'Stacco da terra', sets: 4, reps: '6-8', targetReps: 8, ytName: 'stacco da terra deadlift tecnica' },
-      { name: 'Trazioni presa stretta', sets: 3, reps: '8-10', targetReps: 10, ytName: 'trazioni presa stretta schiena' },
-      { name: 'Rematore con manubrio', sets: 3, reps: '10-12', targetReps: 12, ytName: 'rematore manubrio singolo schiena' },
-      { name: 'Pull over con manubrio', sets: 3, reps: '12', targetReps: 12, ytName: 'pull over manubrio schiena petto' },
-      { name: 'Curl con manubri alternati', sets: 3, reps: '10-12', targetReps: 12, ytName: 'curl manubri alternati bicipiti' },
-      { name: 'Curl al cavo basso', sets: 3, reps: '12-15', targetReps: 15, ytName: 'curl cavo basso bicipiti isolamento' }
-    ]
-  },
-  legs_b: {
-    name: '🟢 LEGS B — Gambe, Addome',
-    badge: 'legs', scheda: 'B',
-    restSec: 120,
-    exercises: [
-      { name: 'Front squat', sets: 4, reps: '8-10', targetReps: 10, ytName: 'front squat quadricipiti tecnica' },
-      { name: 'Affondi con manubri', sets: 3, reps: '10-12', targetReps: 12, ytName: 'affondi manubri gambe lunges' },
-      { name: 'Leg extension', sets: 3, reps: '12-15', targetReps: 15, ytName: 'leg extension macchina quadricipiti' },
-      { name: 'Stacco sumo', sets: 3, reps: '10', targetReps: 10, ytName: 'stacco sumo femorali glutei' },
-      { name: 'Calf raises seduto', sets: 4, reps: '15-20', targetReps: 20, ytName: 'calf raises seduto polpacci soleus' },
-      { name: 'Crunch inverso', sets: 3, reps: '15', targetReps: 15, ytName: 'crunch inverso addominali bassi' },
-      { name: 'Russian twist', sets: 3, reps: '20', targetReps: 20, ytName: 'russian twist obliqui addome' }
-    ]
-  }
-};
-
-let currentDay = null;
-let timerInterval = null;
-let timerRunning = false;
-
-// ===== LOGICA SCHEDA (A/B ogni 8 settimane) =====
-const SCHEDA_START_KEY = 'schedaStartDate';
-const SCHEDA_CURRENT_KEY = 'schedaCurrent'; // 'A' o 'B'
-const WEEKS_PER_SCHEDA = 8;
-
-function getSchedaInfo() {
-  let startDate = localStorage.getItem(SCHEDA_START_KEY);
-  let current = localStorage.getItem(SCHEDA_CURRENT_KEY) || 'A';
-  if (!startDate) {
-    startDate = new Date().toISOString();
-    localStorage.setItem(SCHEDA_START_KEY, startDate);
-    localStorage.setItem(SCHEDA_CURRENT_KEY, 'A');
-  }
-  const msElapsed = Date.now() - new Date(startDate).getTime();
-  const weeksElapsed = Math.floor(msElapsed / (7 * 24 * 60 * 60 * 1000));
-  const weekInScheda = (weeksElapsed % WEEKS_PER_SCHEDA) + 1;
-  const shouldChange = weeksElapsed > 0 && weeksElapsed % WEEKS_PER_SCHEDA === 0 &&
-    !localStorage.getItem('schedaChangeDismissed_' + weeksElapsed);
-  return { current, weeksElapsed, weekInScheda, shouldChange, weeksElapsed };
+// ===================== INIT =====================
+function initApp() {
+  loadTheme();
+  loadScheda();
+  loadProgressi();
+  loadHistory();
+  loadDietPage();
+  loadSpesaPage();
+  loadSettings();
+  populateExerciseSelect();
+  buildCalendar();
+  drawWeightChart();
+  drawExerciseChart();
+  updateVolumeStats();
+  updateMonthlyStats();
 }
 
-function cambiaScheda() {
-  const info = getSchedaInfo();
-  const newScheda = info.current === 'A' ? 'B' : 'A';
-  localStorage.setItem(SCHEDA_CURRENT_KEY, newScheda);
-  localStorage.setItem(SCHEDA_START_KEY, new Date().toISOString());
-  localStorage.setItem('schedaChangeDismissed_' + info.weeksElapsed, '1');
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('gymPinUnlocked') === '1') {
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    initApp();
+  }
+});
+
+// ===================== NAVIGATION =====================
+const PAGE_TITLES = ['🏋️ Allenamento','📈 Progressi','📋 Storico','🥗 Dieta','🛒 Spesa','⚙️ Impostazioni'];
+const PAGE_IDS = ['allena','progressi','storico','dieta','spesa','impostazioni'];
+
+function showPage(name, idx) {
+  PAGE_IDS.forEach(p => document.getElementById('page-'+p).classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  for (let i=0;i<6;i++) document.getElementById('nav-'+i).classList.toggle('active', i===idx);
+  document.getElementById('page-title').textContent = PAGE_TITLES[idx];
+  document.getElementById('main-content').scrollTop = 0;
+  if (name==='progressi') { loadProgressi(); drawWeightChart(); drawExerciseChart(); updateVolumeStats(); updateMonthlyStats(); buildCalendar(); }
+  if (name==='storico') loadHistory();
+}
+
+// ===================== THEME =====================
+function loadTheme() {
+  const t = localStorage.getItem('gymTheme') || 'dark';
+  if (t === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('theme-btn').textContent = '🌙';
+    document.getElementById('theme-toggle').checked = true;
+  }
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  const isLight = document.body.classList.contains('light-mode');
+  localStorage.setItem('gymTheme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀️';
+  document.getElementById('theme-toggle').checked = isLight;
+  drawWeightChart(); drawExerciseChart();
+}
+
+// ===================== SCHEDA =====================
+function loadScheda() {
+  const saved = localStorage.getItem('schedaCurrent');
+  const startStr = localStorage.getItem('schedaStartDate');
+  if (!saved || !startStr) {
+    currentScheda = 'A';
+    localStorage.setItem('schedaCurrent','A');
+    localStorage.setItem('schedaStartDate', new Date().toISOString());
+  } else {
+    currentScheda = saved;
+  }
   updateSchedaBanner();
-  document.getElementById('cambio-scheda-alert').style.display = 'none';
-  showToast(`🔄 Scheda ${newScheda} attivata! Nuovi esercizi per nuovi stimoli 💪`);
 }
 
 function updateSchedaBanner() {
-  const info = getSchedaInfo();
-  const suffix = info.current === 'A' ? '' : '_b';
-  document.getElementById('scheda-label').textContent = `Scheda ${info.current} — Push/Pull/Legs`;
-  document.getElementById('scheda-weeks').textContent =
-    info.current === 'A' ? 'Esercizi base — massima progressione' : 'Variante avanzata — nuovi stimoli';
-  document.getElementById('scheda-week-num').textContent = info.weekInScheda;
-  document.getElementById('scheda-progress-bar').style.width = (info.weekInScheda / WEEKS_PER_SCHEDA * 100) + '%';
-
-  // Aggiorna tasti giorno con scheda corretta
-  const labels = { push: ['🔴','PUSH','Petto · Spalle · Tricipiti'], pull: ['🔵','PULL','Schiena · Bicipiti'], legs: ['🟢','LEGS + Core','Gambe · Addome'] };
-  ['push','pull','legs'].forEach(d => {
-    const btn = document.getElementById('btn-' + d);
-    if (btn) {
-      btn.setAttribute('onclick', `selectDay('${d}${suffix}')`);
-      const [icon, nome, sub] = labels[d];
-      btn.innerHTML = `${icon} Giorno — ${nome} ${info.current === 'B' ? '<span style="color:#FF9800;font-size:0.7rem;">B</span>' : ''}<span>${sub}</span>`;
-    }
-  });
-
-  document.getElementById('cambio-scheda-alert').style.display = info.shouldChange ? 'block' : 'none';
+  const startStr = localStorage.getItem('schedaStartDate');
+  const start = startStr ? new Date(startStr) : new Date();
+  const now = new Date();
+  const diffDays = Math.floor((now - start) / 86400000);
+  const week = Math.min(Math.ceil((diffDays+1)/7), 8);
+  const pct = Math.min(((diffDays)/56)*100, 100);
+  document.getElementById('scheda-badge').textContent = 'SCHEDA ' + currentScheda;
+  document.getElementById('scheda-info').textContent = `Settimana ${week} di 8`;
+  document.getElementById('scheda-sub').textContent = `Iniziata il ${start.toLocaleDateString('it-IT')}`;
+  document.getElementById('scheda-progress').style.width = pct + '%';
+  document.getElementById('info-scheda').textContent = currentScheda;
+  document.getElementById('info-week').textContent = week;
+  document.getElementById('info-start').textContent = start.toLocaleDateString('it-IT');
+  const alert = document.getElementById('scheda-alert');
+  if (diffDays >= 56) { alert.classList.add('show'); }
+  else { alert.classList.remove('show'); }
 }
 
-// ===== TIMER RIPOSO =====
-function startRestTimer(btn, seconds) {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  let remaining = seconds;
-  btn.style.background = '#1a3a5c';
-  btn.style.borderColor = '#2196F3';
-  btn.style.color = '#90CAF9';
-
-  function tick() {
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
-    btn.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
-    if (remaining <= 0) {
-      clearInterval(timerInterval); timerInterval = null;
-      btn.textContent = '✅ Via!';
-      btn.style.background = '#1a3a1a';
-      btn.style.borderColor = '#4CAF50';
-      btn.style.color = '#4CAF50';
-      // Vibrazione se supportata
-      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-      setTimeout(() => {
-        btn.textContent = `⏸ Riposo ${seconds >= 60 ? Math.floor(seconds/60)+'min' : seconds+'sec'}`;
-        btn.style.background = '#12121f';
-        btn.style.borderColor = '#444';
-        btn.style.color = '#888';
-      }, 2000);
-      return;
-    }
-    remaining--;
-  }
-  tick();
-  timerInterval = setInterval(tick, 1000);
+function cambiaScheda() {
+  currentScheda = currentScheda === 'A' ? 'B' : 'A';
+  localStorage.setItem('schedaCurrent', currentScheda);
+  localStorage.setItem('schedaStartDate', new Date().toISOString());
+  updateSchedaBanner();
+  showToast('Scheda cambiata in ' + currentScheda + '!');
+  if (currentDay) { selectDay(currentDay); }
 }
 
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  event.target.classList.add('active');
-  if (name === 'allenamento') updateSchedaBanner();
-  if (name === 'progressi') renderProgress();
-  if (name === 'storico') renderHistory();
-}
-
+// ===================== WORKOUT =====================
 function selectDay(day) {
   currentDay = day;
-  const w = WORKOUTS[day];
-  document.getElementById('workout-title').textContent = w.name;
-  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
-
-  // Calcolo durata stimata
-  const totalSets = w.exercises.reduce((s, e) => s + e.sets, 0);
-  const workTime = totalSets * 45; // ~45s per serie
-  const restTime = totalSets * (w.restSec || 90);
-  const totalMin = Math.round((workTime + restTime) / 60);
-
-  const prs = getPRs();
-  const restSec = w.restSec || 90;
-  const restLabel = restSec >= 60 ? Math.floor(restSec/60) + 'min' : restSec + 'sec';
-  let html = `
-  <div style="background:#12121f;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;gap:16px;">
-    <div style="text-align:center;">
-      <div style="font-size:1.2rem;font-weight:bold;color:#FF9800;">${totalMin}'</div>
-      <div style="font-size:0.68rem;color:#666;">durata est.</div>
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:1.2rem;font-weight:bold;color:#90CAF9;">${w.exercises.length}</div>
-      <div style="font-size:0.68rem;color:#666;">esercizi</div>
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:1.2rem;font-weight:bold;color:#4CAF50;">${totalSets}</div>
-      <div style="font-size:0.68rem;color:#666;">serie tot.</div>
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:1.2rem;font-weight:bold;color:#888;">${restLabel}</div>
-      <div style="font-size:0.68rem;color:#666;">riposo</div>
-    </div>
-  </div>`;
-
-  w.exercises.forEach((ex, i) => {
-    const pr = prs[ex.name] || { weight: 0, completedAllSets: false };
-    const suggestedWeight = pr.completedAllSets ? pr.weight + 2.5 : (pr.weight || 20);
-    const ytQuery = encodeURIComponent((ex.ytName || ex.name) + ' come si esegue tutorial');
-    const ytUrl = `https://www.youtube.com/results?search_query=${ytQuery}`;
-    const timerLabel = restSec >= 60 ? Math.floor(restSec/60) + 'min' : restSec + 'sec';
-    html += `
-    <div class="exercise-row">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-        <div class="exercise-name">${ex.name}</div>
-        <a href="${ytUrl}" target="_blank" class="yt-btn" title="Guarda su YouTube">▶ Video</a>
-      </div>
-      <div class="exercise-meta">${ex.sets} serie × ${ex.reps} rip</div>
-      <div class="input-row">
-        <label>Peso (kg)</label>
-        <input type="number" id="weight-${i}" step="0.5" min="0"
-          value="${suggestedWeight}" oninput="checkSuggestion(${i},'${ex.name}',${ex.sets},${ex.targetReps})">
-        <label>Rip completate</label>
-        <input type="number" id="reps-${i}" min="0" max="30"
-          placeholder="${ex.targetReps}" oninput="checkSuggestion(${i},'${ex.name}',${ex.sets},${ex.targetReps})">
-      </div>
-      <button class="rest-timer-btn" id="timer-${i}"
-        onclick="startRestTimer(this, ${restSec})"
-        style="margin-top:8px;width:100%;padding:9px;background:#12121f;border:1px solid #444;border-radius:8px;color:#888;font-size:0.8rem;cursor:pointer;transition:all 0.2s;">
-        ⏸ Riposo ${timerLabel}
-      </button>
-      <div class="suggestion" id="sug-${i}"></div>
-    </div>`;
-  });
-
-  document.getElementById('exercises-list').innerHTML = html;
-  document.getElementById('workout-form').style.display = 'block';
-  document.getElementById('workout-form').scrollIntoView({ behavior: 'smooth' });
+  workoutSessionNotes = {};
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.day-btn.'+day.toLowerCase()).classList.add('active');
+  document.getElementById('workout-area').style.display = 'block';
+  buildExerciseList();
+  startChrono();
 }
 
-function checkSuggestion(i, name, sets, targetReps) {
-  const weight = parseFloat(document.getElementById('weight-' + i).value) || 0;
-  const reps = parseInt(document.getElementById('reps-' + i).value) || 0;
-  const sug = document.getElementById('sug-' + i);
+function buildExerciseList() {
+  const exercises = EXERCISES[currentScheda][currentDay];
+  const container = document.getElementById('exercises-list');
+  container.innerHTML = '';
+  const totalSets = exercises.reduce((a,e)=>a+e.sets,0);
+  document.getElementById('ws-ex').textContent = exercises.length;
+  document.getElementById('ws-sets').textContent = totalSets;
+  const estMin = Math.round((totalSets * 2.5) + (totalSets * (currentDay==='LEGS'?2:1.5)));
+  document.getElementById('ws-dur').textContent = estMin + 'min';
 
-  if (reps >= targetReps) {
-    sug.style.display = 'block';
-    sug.className = 'suggestion';
-    sug.textContent = `✅ Ottimo! Prossima volta prova ${weight + 2.5}kg (+2.5kg)`;
-  } else if (reps > 0 && reps < targetReps - 2) {
-    sug.style.display = 'block';
-    sug.className = 'suggestion warn';
-    sug.textContent = `💪 Mantieni ${weight}kg — punta a ${targetReps} rip prima di aumentare`;
-  } else {
-    sug.style.display = 'none';
-  }
-}
-
-function saveWorkout() {
-  const w = WORKOUTS[currentDay];
-  const prs = getPRs();
-  let newPRs = 0;
-  const results = [];
-
-  w.exercises.forEach((ex, i) => {
-    const weight = parseFloat(document.getElementById('weight-' + i).value) || 0;
-    const reps = parseInt(document.getElementById('reps-' + i).value) || 0;
-    const completedAllSets = reps >= ex.targetReps;
-    const isPR = weight > (prs[ex.name]?.weight || 0);
-    if (isPR) newPRs++;
-    prs[ex.name] = { weight, completedAllSets, reps, lastDate: new Date().toISOString() };
-    results.push({ name: ex.name, weight, reps, sets: ex.sets });
-  });
-
-  savePRs(prs);
-
-  const history = getHistory();
-  history.unshift({
-    day: currentDay,
-    dayName: w.name,
-    date: new Date().toLocaleDateString('it-IT'),
-    timestamp: Date.now(),
-    results,
-    newPRs
-  });
-  saveHistory(history);
-
-  showToast(newPRs > 0 ? `🏆 Salvato! ${newPRs} nuovo/i personal record!` : '✅ Allenamento salvato!');
-  cancelWorkout();
-  renderProgress();
-}
-
-function cancelWorkout() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  document.getElementById('workout-form').style.display = 'none';
-  currentDay = null;
-  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
-}
-
-function renderProgress() {
-  const history = getHistory();
-  const prs = getPRs();
-  document.getElementById('stat-sessions').textContent = history.length;
-
-  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const weekSessions = history.filter(h => h.timestamp > oneWeekAgo).length;
-  document.getElementById('stat-week').textContent = weekSessions;
-
-  let streak = 0;
-  const today = new Date().toLocaleDateString('it-IT');
-  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('it-IT');
-  if (history.length > 0) {
-    const lastDate = history[0].date;
-    if (lastDate === today || lastDate === yesterday) {
-      streak = 1;
-      for (let i = 1; i < history.length; i++) {
-        const diff = (history[i-1].timestamp - history[i].timestamp) / 86400000;
-        if (diff <= 2) streak++; else break;
-      }
-    }
-  }
-  document.getElementById('stat-streak').textContent = streak;
-
-  const totalPRs = Object.values(prs).filter(p => p.weight > 0).length;
-  document.getElementById('stat-prs').textContent = totalPRs;
-
-  let prHtml = '';
-  const allExercises = [...WORKOUTS.push.exercises, ...WORKOUTS.pull.exercises, ...WORKOUTS.legs.exercises];
-  allExercises.forEach(ex => {
-    const pr = prs[ex.name];
-    if (pr && pr.weight > 0) {
-      const pct = Math.min(100, (pr.weight / (pr.weight * 1.5)) * 100);
-      const next = pr.completedAllSets ? pr.weight + 2.5 : pr.weight;
-      prHtml += `
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
-          <span>${ex.name}</span>
-          <span style="color:#90CAF9;font-weight:bold;">${pr.weight}kg</span>
+  exercises.forEach((ex, idx) => {
+    const key = exKey(ex.name);
+    const prs = JSON.parse(localStorage.getItem('gymPRs') || '{}');
+    const pr = prs[key];
+    let suggestKg = pr ? (pr.allReps ? parseFloat((pr.weight + 2.5).toFixed(1)) : pr.weight) : '';
+    const savedNote = workoutSessionNotes[key] || '';
+    const div = document.createElement('div');
+    div.className = 'exercise-card';
+    div.innerHTML = `
+      <div class="ex-header">
+        <div>
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-sets">${ex.sets} × ${ex.reps} rip${pr ? ` · PR: ${pr.weight}kg` : ''}</div>
         </div>
-        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
-        <div style="font-size:0.72rem;color:#4CAF50;">→ Prossimo obiettivo: ${next}kg</div>
-      </div>`;
-    }
+        <button class="btn btn-ghost btn-sm" onclick="openVideo('${ex.name}')">▶ Video</button>
+      </div>
+      <div class="ex-inputs">
+        <div><label>Peso (kg)</label><input type="number" id="kg-${idx}" step="0.5" min="0" max="500" placeholder="${suggestKg||'kg'}" value="${suggestKg||''}" oninput="updateSuggestion(${idx})"></div>
+        <div><label>Rip completate</label><input type="number" id="reps-${idx}" min="0" max="999" placeholder="${ex.reps}" oninput="updateSuggestion(${idx})"></div>
+      </div>
+      <div class="ex-suggestion neutral" id="sug-${idx}">Inserisci peso e rip per il suggerimento</div>
+      <div class="rest-row">
+        <button class="btn btn-ghost btn-sm rest-btn" id="rest-btn-${idx}" onclick="startRestTimer(${idx},${ex.restSec})">⏱ Riposo ${ex.restSec}s</button>
+      </div>
+      <div><label>📝 Note</label><textarea id="note-${idx}" placeholder="Sensazioni, varianti, dolori..." rows="2" oninput="saveNote(${idx},'${key}')">${savedNote}</textarea></div>
+    `;
+    container.appendChild(div);
+    setTimeout(() => updateSuggestion(idx), 50);
   });
-  document.getElementById('pr-list').innerHTML = prHtml || '<p style="color:#666;font-size:0.85rem;">Nessun dato ancora. Inizia il primo allenamento!</p>';
-
-  const dayCounts = { push: 0, pull: 0, legs: 0 };
-  history.slice(0, 10).forEach(h => { if (dayCounts[h.day] !== undefined) dayCounts[h.day]++; });
-  const minDay = Object.entries(dayCounts).sort((a, b) => a[1] - b[1])[0][0];
-  const nextNames = { push: 'PUSH (Petto/Spalle/Tricipiti)', pull: 'PULL (Schiena/Bicipiti)', legs: 'LEGS + Core' };
-  document.getElementById('next-session').textContent =
-    history.length === 0 ? 'Inizia con il Giorno A — PUSH! 💪' :
-    `Consigliato: Giorno ${minDay.toUpperCase()} — ${nextNames[minDay]}`;
 }
 
-function renderHistory() {
-  const history = getHistory();
-  if (history.length === 0) {
-    document.getElementById('history-list').innerHTML = '<p style="color:#666;font-size:0.85rem;">Nessun allenamento registrato.</p>';
+function exKey(name) { return name.replace(/[^a-zA-Zàèéìòù]/g,'_').toLowerCase(); }
+
+function openVideo(name) {
+  const q = encodeURIComponent(name + ' tutorial gym');
+  window.open('https://www.youtube.com/results?search_query='+q, '_blank');
+}
+
+function updateSuggestion(idx) {
+  const exercises = EXERCISES[currentScheda][currentDay];
+  const ex = exercises[idx];
+  const kg = parseFloat(document.getElementById('kg-'+idx).value);
+  const reps = parseInt(document.getElementById('reps-'+idx).value);
+  const el = document.getElementById('sug-'+idx);
+  if (!kg && !reps) { el.className='ex-suggestion neutral'; el.textContent='Inserisci peso e rip per il suggerimento'; return; }
+  const target = parseInt((ex.reps+'-').split('-')[1] || ex.reps.split('-')[0]);
+  const min = parseInt(ex.reps.split('-')[0]);
+  if (reps >= target) {
+    el.className='ex-suggestion ok'; el.textContent=`✅ Ottimo! +2.5kg alla prossima sessione`;
+  } else if (reps >= min) {
+    el.className='ex-suggestion ok'; el.textContent=`✅ Nell\'intervallo target`;
+  } else if (!isNaN(reps)) {
+    const diff = min - reps;
+    el.className='ex-suggestion warn'; el.textContent=`⚠️ Mancano ${diff} rip al target minimo`;
+  }
+}
+
+function saveNote(idx, key) {
+  workoutSessionNotes[key] = document.getElementById('note-'+idx).value;
+}
+
+function startRestTimer(idx, seconds) {
+  const btn = document.getElementById('rest-btn-'+idx);
+  if (restTimers[idx]) {
+    clearInterval(restTimers[idx]);
+    delete restTimers[idx];
+    btn.className='btn btn-ghost btn-sm rest-btn';
+    btn.textContent=`⏱ Riposo ${seconds}s`;
     return;
   }
-  let html = '';
-  history.slice(0, 20).forEach(h => {
-    const badge = `<span class="badge badge-${h.day}">${h.day.toUpperCase()}</span>`;
-    let details = h.results.map(r => `${r.name}: <b>${r.weight}kg</b> × ${r.reps} rip`).join('<br>');
-    html += `
-    <div class="history-item">
-      <div class="history-date">${h.date} ${badge} ${h.newPRs > 0 ? '🏆 ' + h.newPRs + ' PR' : ''}</div>
-      <div class="history-content" style="font-size:0.78rem;color:#aaa;margin-top:6px;">${details}</div>
-    </div>`;
-  });
-  document.getElementById('history-list').innerHTML = html;
+  let remaining = seconds;
+  btn.className='btn btn-sm rest-btn running';
+  btn.textContent=`⏹ ${remaining}s`;
+  restTimers[idx] = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(restTimers[idx]);
+      delete restTimers[idx];
+      btn.className='btn btn-sm rest-btn done';
+      btn.textContent='✅ Via!';
+      if (navigator.vibrate) navigator.vibrate([200,100,200]);
+      setTimeout(()=>{ btn.className='btn btn-ghost btn-sm rest-btn'; btn.textContent=`⏱ Riposo ${seconds}s`; }, 3000);
+    } else {
+      btn.textContent=`⏹ ${remaining}s`;
+    }
+  },1000);
 }
 
-function clearHistory() {
-  if (confirm('Cancellare tutto lo storico?')) {
-    localStorage.removeItem('gymHistory');
-    localStorage.removeItem('gymPRs');
-    renderHistory();
-    showToast('🗑️ Storico cancellato');
+// ===================== CHRONO =====================
+function startChrono() {
+  if (chronoInterval) clearInterval(chronoInterval);
+  chronoStart = Date.now();
+  chronoElapsed = 0;
+  chronoInterval = setInterval(() => {
+    chronoElapsed = Math.floor((Date.now() - chronoStart) / 1000);
+    const m = String(Math.floor(chronoElapsed/60)).padStart(2,'0');
+    const s = String(chronoElapsed%60).padStart(2,'0');
+    document.getElementById('chrono').textContent = m+':'+s;
+  }, 1000);
+}
+
+function stopChrono() {
+  if (chronoInterval) { clearInterval(chronoInterval); chronoInterval = null; }
+  return chronoElapsed;
+}
+
+// ===================== SAVE WORKOUT =====================
+function saveWorkout() {
+  const exercises = EXERCISES[currentScheda][currentDay];
+  if (!currentDay) { showToast('Seleziona un giorno!'); return; }
+  const duration = stopChrono();
+  const prs = JSON.parse(localStorage.getItem('gymPRs') || '{}');
+  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
+  let newPRs = 0;
+  const exData = exercises.map((ex, idx) => {
+    const key = exKey(ex.name);
+    const kg = parseFloat(document.getElementById('kg-'+idx)?.value) || 0;
+    const reps = parseInt(document.getElementById('reps-'+idx)?.value) || 0;
+    const note = document.getElementById('note-'+idx)?.value || '';
+    const target = parseInt((ex.reps+'-').split('-')[1] || ex.reps.split('-')[0]);
+    const allReps = reps >= parseInt(ex.reps.split('-')[0]);
+    if (kg > 0) {
+      if (!prs[key] || kg > prs[key].weight) {
+        prs[key] = { weight: kg, date: new Date().toISOString(), allReps };
+        newPRs++;
+      } else {
+        prs[key].allReps = allReps;
+      }
+    }
+    return { name: ex.name, sets: ex.sets, reps: ex.reps, kg, repsCompleted: reps, note };
+  });
+  const session = {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    day: currentDay,
+    scheda: currentScheda,
+    exercises: exData,
+    duration,
+    newPRs
+  };
+  history.unshift(session);
+  if (history.length > 100) history.pop();
+  localStorage.setItem('gymPRs', JSON.stringify(prs));
+  localStorage.setItem('gymHistory', JSON.stringify(history));
+  showToast(`✅ Allenamento salvato! ${newPRs > 0 ? newPRs+' PR battuti! 🏆' : ''}`);
+  document.getElementById('workout-area').style.display='none';
+  currentDay = null;
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+  clearAllRestTimers();
+}
+
+function clearAllRestTimers() {
+  Object.keys(restTimers).forEach(k => clearInterval(restTimers[k]));
+  restTimers = {};
+}
+
+// ===================== PROGRESSI =====================
+function loadProgressi() {
+  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
+  const prs = JSON.parse(localStorage.getItem('gymPRs') || '{}');
+  document.getElementById('p-sessions').textContent = history.length;
+  const now = new Date();
+  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay() + 1); startOfWeek.setHours(0,0,0,0);
+  const thisWeek = history.filter(h => new Date(h.date) >= startOfWeek).length;
+  document.getElementById('p-week').textContent = thisWeek;
+  const streak = calcStreak(history);
+  document.getElementById('p-streak').textContent = streak;
+  document.getElementById('p-prs').textContent = Object.keys(prs).length;
+}
+
+function calcStreak(history) {
+  if (!history.length) return 0;
+  const days = [...new Set(history.map(h => h.date.slice(0,10)))].sort().reverse();
+  let streak = 0;
+  let check = new Date(); check.setHours(0,0,0,0);
+  for (const d of days) {
+    const dd = new Date(d); dd.setHours(0,0,0,0);
+    const diff = Math.round((check - dd) / 86400000);
+    if (diff <= 1) { streak++; check = dd; }
+    else break;
+  }
+  return streak;
+}
+
+function addWeight() {
+  const val = parseFloat(document.getElementById('weight-input').value);
+  if (!val || val<30 || val>300) { showToast('Peso non valido'); return; }
+  const weights = JSON.parse(localStorage.getItem('gymWeight') || '[]');
+  weights.push({ date: new Date().toISOString(), weight: val });
+  localStorage.setItem('gymWeight', JSON.stringify(weights));
+  document.getElementById('weight-input').value = '';
+  drawWeightChart();
+  showToast('Peso aggiunto: '+val+'kg');
+}
+
+function drawWeightChart() {
+  const canvas = document.getElementById('weight-chart');
+  if (!canvas) return;
+  const weights = JSON.parse(localStorage.getItem('gymWeight') || '[]');
+  const recent = weights.slice(-12);
+  const w = canvas.parentElement.offsetWidth - 16;
+  canvas.width = w; canvas.height = 120;
+  const ctx = canvas.getContext('2d');
+  const isDark = !document.body.classList.contains('light-mode');
+  ctx.clearRect(0,0,w,120);
+  if (recent.length < 2) {
+    ctx.fillStyle = isDark ? '#555' : '#aaa';
+    ctx.font = '13px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('Aggiungi almeno 2 misurazioni', w/2, 65);
+    return;
+  }
+  const vals = recent.map(r=>r.weight);
+  const mn = Math.min(...vals)-1, mx = Math.max(...vals)+1;
+  const pad = {l:36,r:10,t:10,b:28};
+  const aw = w-pad.l-pad.r, ah = 120-pad.t-pad.b;
+  // grid
+  ctx.strokeStyle = isDark ? '#2a2a3e' : '#e0e0e0'; ctx.lineWidth=1;
+  for (let i=0;i<=4;i++) {
+    const y = pad.t + (ah/4)*i;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
+    ctx.fillStyle=isDark?'#555':'#999'; ctx.font='10px Segoe UI'; ctx.textAlign='right';
+    ctx.fillText((mx - (mx-mn)/4*i).toFixed(1), pad.l-4, y+4);
+  }
+  // line
+  ctx.strokeStyle='#2196F3'; ctx.lineWidth=2; ctx.lineJoin='round';
+  ctx.beginPath();
+  recent.forEach((r,i)=>{ const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  // dots
+  recent.forEach((r,i)=>{
+    const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah;
+    ctx.fillStyle='#2196F3'; ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fill();
+  });
+  // x labels
+  ctx.fillStyle=isDark?'#555':'#999'; ctx.font='9px Segoe UI'; ctx.textAlign='center';
+  recent.forEach((r,i)=>{
+    if (i % Math.ceil(recent.length/4) === 0 || i===recent.length-1) {
+      const x=pad.l+i*(aw/(recent.length-1));
+      const d=new Date(r.date); ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`, x, 120-6);
+    }
+  });
+  // trend
+  if (vals.length >= 2) {
+    const diff = vals[vals.length-1] - vals[0];
+    const trend = diff > 0.1 ? '↑ +'+diff.toFixed(1)+'kg' : diff < -0.1 ? '↓ '+diff.toFixed(1)+'kg' : '→ Stabile';
+    document.getElementById('weight-trend').textContent = 'Trend: ' + trend;
   }
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+function populateExerciseSelect() {
+  const sel = document.getElementById('ex-chart-select');
+  if (!sel) return;
+  const all = [];
+  ['A','B'].forEach(s=>['PUSH','PULL','LEGS'].forEach(d=>EXERCISES[s][d].forEach(e=>{ if (!all.includes(e.name)) all.push(e.name); })));
+  sel.innerHTML = all.map(n=>`<option value="${n}">${n}</option>`).join('');
 }
 
-function getPRs() { return JSON.parse(localStorage.getItem('gymPRs') || '{}'); }
-function savePRs(prs) { localStorage.setItem('gymPRs', JSON.stringify(prs)); }
-function getHistory() { return JSON.parse(localStorage.getItem('gymHistory') || '[]'); }
-function saveHistory(h) { localStorage.setItem('gymHistory', JSON.stringify(h)); }
-
-document.getElementById('header-date').textContent =
-  new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-
-// Init scheda banner all'avvio
-updateSchedaBanner();
-
-function showSeason(season) {
-  document.querySelectorAll('.diet-season').forEach(d => d.style.display = 'none');
-  document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('diet-' + season).style.display = 'block';
-  document.getElementById('btn-' + season).classList.add('active');
+function drawExerciseChart() {
+  const canvas = document.getElementById('ex-chart');
+  const sel = document.getElementById('ex-chart-select');
+  if (!canvas || !sel) return;
+  const exName = sel.value;
+  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
+  const key = exKey(exName);
+  const data = [];
+  [...history].reverse().forEach(s => {
+    const ex = s.exercises?.find(e=>exKey(e.name)===key);
+    if (ex && ex.kg > 0) data.push({ date: s.date, weight: ex.kg });
+  });
+  const recent = data.slice(-10);
+  const w = canvas.parentElement.offsetWidth - 16;
+  canvas.width = w; canvas.height = 120;
+  const ctx = canvas.getContext('2d');
+  const isDark = !document.body.classList.contains('light-mode');
+  ctx.clearRect(0,0,w,120);
+  if (recent.length < 2) {
+    ctx.fillStyle=isDark?'#555':'#aaa'; ctx.font='13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('Nessun dato per questo esercizio', w/2, 65); return;
+  }
+  const vals = recent.map(r=>r.weight);
+  const mn = Math.max(0, Math.min(...vals)-5), mx = Math.max(...vals)+5;
+  const pad = {l:40,r:10,t:10,b:28};
+  const aw = w-pad.l-pad.r, ah = 120-pad.t-pad.b;
+  ctx.strokeStyle=isDark?'#2a2a3e':'#e0e0e0'; ctx.lineWidth=1;
+  for (let i=0;i<=4;i++) {
+    const y=pad.t+(ah/4)*i; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
+    ctx.fillStyle=isDark?'#555':'#999'; ctx.font='10px Segoe UI'; ctx.textAlign='right';
+    ctx.fillText((mx-(mx-mn)/4*i).toFixed(1)+'kg', pad.l-4, y+4);
+  }
+  ctx.strokeStyle='#4CAF50'; ctx.lineWidth=2; ctx.lineJoin='round';
+  ctx.beginPath();
+  recent.forEach((r,i)=>{ const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  recent.forEach((r,i)=>{
+    const x=pad.l+i*(aw/(recent.length-1)), y=pad.t+ah-(r.weight-mn)/(mx-mn)*ah;
+    ctx.fillStyle='#4CAF50'; ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fill();
+  });
+  ctx.fillStyle=isDark?'#555':'#999'; ctx.font='9px Segoe UI'; ctx.textAlign='center';
+  recent.forEach((r,i)=>{
+    if (i % Math.ceil(recent.length/4)===0 || i===recent.length-1) {
+      const x=pad.l+i*(aw/(recent.length-1));
+      const d=new Date(r.date); ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`,x,120-6);
+    }
+  });
 }
 
-// Auto-seleziona la stagione corrente
-(function() {
-  const m = new Date().getMonth() + 1;
-  if (m >= 6 && m <= 8) showSeason('estate');
-  else if (m >= 9 && m <= 11) showSeason('autunno');
-  else if (m === 12 || m <= 2) showSeason('inverno');
-  else showSeason('primavera');
-})();
+function updateVolumeStats() {
+  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
+  const now = new Date();
+  const startW = new Date(now); startW.setDate(now.getDate()-now.getDay()+1); startW.setHours(0,0,0,0);
+  const startLW = new Date(startW); startLW.setDate(startLW.getDate()-7);
+  let thisVol=0, lastVol=0;
+  history.forEach(s => {
+    const d = new Date(s.date);
+    const vol = (s.exercises||[]).reduce((a,e)=>a+(e.kg||0)*(e.repsCompleted||0)*e.sets,0);
+    if (d>=startW) thisVol+=vol;
+    else if (d>=startLW) lastVol+=vol;
+  });
+  const max = Math.max(thisVol,lastVol,1);
+  document.getElementById('vol-bar-this').style.height = (thisVol/max*80)+'%';
+  document.getElementById('vol-bar-last').style.height = (lastVol/max*80)+'%';
+  const diff = thisVol-lastVol;
+  document.getElementById('volume-info').textContent = `Questa settimana: ${Math.round(thisVol)}kg | Scorsa: ${Math.round(lastVol)}kg${diff!==0?' ('+( diff>0?'+':'')+Math.round(diff)+'kg)':''}`;
+}
+
+function updateMonthlyStats() {
+  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
+  const now = new Date();
+  const startM = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthly = history.filter(s=>new Date(s.date)>=startM);
+  document.getElementById('m-sessions').textContent = monthly.length;
+  document.getElementById('m-prs').textContent = monthly.reduce((a,s)=>a+(s.newPRs||0),0);
+  const vol = monthly.reduce((a,s)=>{
+    return a + (s.exercises||[]).reduce((b,e)=>b+(e.kg||0)*(e.repsCompleted||0)*e.sets,0);
+  },0);
+  document.getElementById('m-vol').textContent = Math.round(vol);
+  const avgDur = monthly.length ? Math.round(monthly.reduce((a,s)=>a+(s.duration||0),0)/monthly.length/60) : 0;
+  document.getElementById('m-dur').textContent = avgDur ? avgDur+'min' : '--';
+}
+
+function buildCalendar() {
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
+  const trainedDays = new Set(history.filter(s=>{
+    const d=new Date(s.date); return d.getMonth()===month && d.getFullYear()===year;
+  }).map(s=>new Date(s.date).getDate()));
+  const grid = document.getElementById('calendar-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const startCol = firstDay === 0 ? 7 : firstDay;
+  for (let i=1;i<startCol;i++) { const d=document.createElement('div'); d.className='cal-day'; grid.appendChild(d); }
+  for (let d=1;d<=daysInMonth;d++) {
+    const el=document.createElement('div');
+    el.className='cal-day'+(trainedDays.has(d)?' trained':'')+(d===now.getDate()?' today':'');
+    el.textContent=d; grid.appendChild(el);
+  }
+}
+
+// ===================== STORICO =====================
+function loadHistory() {
+  const history = JSON.parse(localStorage.getItem('gymHistory') || '[]');
+  const container = document.getElementById('history-list');
+  if (!history.length) { container.innerHTML='<p style="color:var(--muted);text-align:center;padding:30px">Nessun allenamento salvato</p>'; return; }
+  const recent = history.slice(0,20);
+  container.innerHTML = recent.map(s => {
+    const d = new Date(s.date);
+    const dateStr = d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    const badgeClass = s.day==='PUSH'?'badge-push':s.day==='PULL'?'badge-pull':'badge-legs';
+    const dur = s.duration ? Math.round(s.duration/60)+'min' : '--';
+    const exList = (s.exercises||[]).map(e=>`<span>${e.name}: ${e.kg||'?'}kg × ${e.repsCompleted||e.reps}</span>`).join(' · ');
+    const notes = (s.exercises||[]).filter(e=>e.note).map(e=>`${e.name}: ${e.note}`).join('; ');
+    return `<div class="history-item">
+      <div class="history-header">
+        <div class="history-date">${dateStr}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="day-badge ${badgeClass}">${s.day}</span>
+          <span style="font-size:11px;background:var(--card);padding:2px 7px;border-radius:10px">Sch. ${s.scheda}</span>
+          <span style="font-size:11px;color:var(--muted)">${dur}</span>
+          ${s.newPRs?`<span style="font-size:11px;background:rgba(255,152,0,0.15);color:var(--warning);padding:2px 7px;border-radius:10px">🏆 ${s.newPRs} PR</span>`:''}
+        </div>
+      </div>
+      <div class="history-ex">${exList}</div>
+      ${notes?`<div class="history-notes">📝 ${notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ===================== DIETA =====================
+function getSeasonFromMonth() {
+  const m = new Date().getMonth();
+  if (m>=5&&m<=7) return 'estate';
+  if (m>=8&&m<=9) return 'autunno';
+  if (m>=10||m<=1) return 'inverno';
+  return 'primavera';
+}
+
+function loadDietPage() {
+  currentSeason = localStorage.getItem('gymDietSeason') || getSeasonFromMonth();
+  renderSeasonBtns();
+  renderMeals();
+  initWater();
+  renderMealPrep();
+  const profile = JSON.parse(localStorage.getItem('gymProfile') || '{}');
+  if (profile.peso) { document.getElementById('macro-weight').value = profile.peso; }
+  if (profile.obiettivo) { document.getElementById('macro-goal').value = profile.obiettivo; }
+}
+
+function selectSeason(s) {
+  currentSeason = s;
+  localStorage.setItem('gymDietSeason', s);
+  renderSeasonBtns();
+  renderMeals();
+  renderMealPrep();
+}
+
+function renderSeasonBtns() {
+  ['estate','autunno','inverno','primavera'].forEach(s => {
+    document.getElementById('btn-'+s).classList.toggle('active', s===currentSeason);
+  });
+}
+
+function renderMeals() {
+  const diet = DIET[currentSeason];
+  const container = document.getElementById('meals-content');
+  document.querySelector('#diet-meals .card-title').textContent = '🍽️ ' + diet.title;
+  container.innerHTML = diet.meals.map(meal=>`
+    <div class="meal-card">
+      <div class="meal-title">${meal.name}</div>
+      ${meal.options.map((o,i)=>`<div class="meal-option">• ${o}</div>`).join('')}
+    </div>
+  `).join('');
+}
+
+function calcMacros() {
+  const w = parseFloat(document.getElementById('macro-weight').value);
+  const goal = document.getElementById('macro-goal').value;
+  if (!w || w<30||w>300) { showToast('Inserisci un peso valido'); return; }
+  const kcalMap = {massa:35, definizione:28, mantenimento:32};
+  const cal = Math.round(w * kcalMap[goal]);
+  const prot = Math.round(w * 2);
+  const fat = Math.round(w * 1);
+  const carb = Math.round((cal - prot*4 - fat*9) / 4);
+  document.getElementById('mac-cal').textContent = cal;
+  document.getElementById('mac-pro').textContent = prot+'g';
+  document.getElementById('mac-carb').textContent = Math.max(0,carb)+'g';
+  document.getElementById('mac-fat').textContent = fat+'g';
+  document.getElementById('macros-result').style.display = 'grid';
+}
+
+function initWater() {
+  const today = new Date().toDateString();
+  let waterData = JSON.parse(localStorage.getItem('gymWaterToday') || '{}');
+  if (waterData.date !== today) { waterData = {date:today, count:0}; localStorage.setItem('gymWaterToday', JSON.stringify(waterData)); }
+  renderWater(waterData.count);
+}
+
+function renderWater(count) {
+  const grid = document.getElementById('water-grid');
+  grid.innerHTML = '';
+  for (let i=0;i<8;i++) {
+    const el = document.createElement('div');
+    el.className = 'water-glass' + (i<count?' filled':'');
+    el.textContent = '🥤';
+    el.onclick = () => toggleWater(i);
+    grid.appendChild(el);
+  }
+  document.getElementById('water-progress').style.width = (count/8*100)+'%';
+  document.getElementById('water-label').textContent = count + ' / 8 bicchieri';
+}
+
+function toggleWater(idx) {
+  const today = new Date().toDateString();
+  let waterData = JSON.parse(localStorage.getItem('gymWaterToday') || '{}');
+  if (waterData.date !== today) waterData = {date:today, count:0};
+  waterData.count = waterData.count > idx ? idx : idx+1;
+  localStorage.setItem('gymWaterToday', JSON.stringify(waterData));
+  renderWater(waterData.count);
+  if (waterData.count >= 8) showToast('🎉 Obiettivo acqua raggiunto!');
+}
+
+function resetWater() {
+  const today = new Date().toDateString();
+  localStorage.setItem('gymWaterToday', JSON.stringify({date:today,count:0}));
+  renderWater(0);
+}
+
+function renderMealPrep() {
+  const days = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+  const preps = MEAL_PREP[currentSeason];
+  const grid = document.getElementById('meal-prep-grid');
+  grid.innerHTML = days.map((d,i) => `
+    <div class="prep-day">
+      <div class="prep-day-name">${d}</div>
+      <div class="prep-day-content">${preps[i]||preps[i%preps.length]}</div>
+    </div>
+  `).join('');
+}
 
 // ===================== SPESA =====================
-const SPESA_DATA = {
-  estate: [
-    { cat: '🥩 Proteine', items: [
-      { name: 'Petto di pollo', qty: '1 kg', tag: 'fresco' },
-      { name: 'Tonno al naturale', qty: '6 scatolette', tag: 'scorta' },
-      { name: 'Salmone fresco', qty: '400g', tag: 'fresco' },
-      { name: 'Pesce spada', qty: '300g', tag: 'fresco' },
-      { name: 'Uova', qty: '12 pezzi', tag: 'base' },
-      { name: 'Yogurt greco 0%', qty: '4 vasetti 200g', tag: 'fresco' },
-      { name: 'Ricotta light', qty: '250g', tag: 'fresco' },
-    ]},
-    { cat: '🌾 Carboidrati', items: [
-      { name: 'Riso basmati', qty: '1 kg', tag: 'scorta' },
-      { name: 'Pasta integrale', qty: '500g', tag: 'scorta' },
-      { name: 'Pane integrale', qty: '1 confezione', tag: 'fresco' },
-      { name: 'Avena', qty: '500g', tag: 'scorta' },
-    ]},
-    { cat: '🥗 Verdure & Frutta', items: [
-      { name: 'Anguria', qty: '1 fetta grande', tag: 'stagionale' },
-      { name: 'Melone', qty: '1 piccolo', tag: 'stagionale' },
-      { name: 'Pomodorini', qty: '500g', tag: 'fresco' },
-      { name: 'Cetrioli', qty: '3 pezzi', tag: 'fresco' },
-      { name: 'Lattuga / rucola', qty: '1 busta', tag: 'fresco' },
-      { name: 'Zucchine', qty: '4 pezzi', tag: 'fresco' },
-      { name: 'Banane', qty: '6 pezzi', tag: 'fresco' },
-      { name: 'Fragole / frutti di bosco', qty: '300g', tag: 'stagionale' },
-    ]},
-    { cat: '🧴 Condimenti & Grassi', items: [
-      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
-      { name: 'Mandorle / arachidi', qty: '200g', tag: 'scorta' },
-      { name: 'Avocado', qty: '2 pezzi', tag: 'fresco' },
-    ]},
-  ],
-  autunno: [
-    { cat: '🥩 Proteine', items: [
-      { name: 'Petto di pollo', qty: '1 kg', tag: 'fresco' },
-      { name: 'Macinato di tacchino', qty: '500g', tag: 'fresco' },
-      { name: 'Salmone fresco', qty: '400g', tag: 'fresco' },
-      { name: 'Bistecca manzo', qty: '400g', tag: 'fresco' },
-      { name: 'Uova', qty: '12 pezzi', tag: 'base' },
-      { name: 'Yogurt greco', qty: '4 vasetti', tag: 'fresco' },
-      { name: 'Ricotta', qty: '250g', tag: 'fresco' },
-    ]},
-    { cat: '🌾 Carboidrati', items: [
-      { name: 'Riso basmati', qty: '1 kg', tag: 'scorta' },
-      { name: 'Pasta integrale', qty: '1 kg', tag: 'scorta' },
-      { name: 'Pane di segale', qty: '1 confezione', tag: 'fresco' },
-      { name: 'Avena', qty: '500g', tag: 'scorta' },
-      { name: 'Patate dolci', qty: '1 kg', tag: 'fresco' },
-    ]},
-    { cat: '🥦 Verdure & Frutta', items: [
-      { name: 'Broccoli', qty: '500g', tag: 'stagionale' },
-      { name: 'Spinaci', qty: '300g', tag: 'stagionale' },
-      { name: 'Funghi champignon', qty: '250g', tag: 'fresco' },
-      { name: 'Mele', qty: '6 pezzi', tag: 'stagionale' },
-      { name: 'Pere', qty: '4 pezzi', tag: 'stagionale' },
-      { name: 'Banane', qty: '6 pezzi', tag: 'fresco' },
-    ]},
-    { cat: '🫘 Legumi', items: [
-      { name: 'Lenticchie (barattolo)', qty: '2 barattoli', tag: 'scorta' },
-      { name: 'Ceci (barattolo)', qty: '2 barattoli', tag: 'scorta' },
-      { name: 'Fagioli neri', qty: '1 barattolo', tag: 'scorta' },
-    ]},
-    { cat: '🧴 Condimenti & Grassi', items: [
-      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
-      { name: 'Noci / mandorle', qty: '300g', tag: 'scorta' },
-      { name: 'Burro di arachidi', qty: '1 vasetto', tag: 'scorta' },
-    ]},
-  ],
-  inverno: [
-    { cat: '🥩 Proteine', items: [
-      { name: 'Petto di pollo', qty: '1.5 kg', tag: 'fresco' },
-      { name: 'Bistecca di manzo/vitello', qty: '600g', tag: 'fresco' },
-      { name: 'Salmone fresco', qty: '500g', tag: 'fresco' },
-      { name: 'Macinato di manzo', qty: '500g', tag: 'fresco' },
-      { name: 'Petto di tacchino', qty: '400g', tag: 'fresco' },
-      { name: 'Uova', qty: '18 pezzi', tag: 'base' },
-      { name: 'Ricotta intera', qty: '500g', tag: 'fresco' },
-      { name: 'Latte intero', qty: '1L', tag: 'fresco' },
-    ]},
-    { cat: '🌾 Carboidrati', items: [
-      { name: 'Riso integrale', qty: '1 kg', tag: 'scorta' },
-      { name: 'Pasta', qty: '1.5 kg', tag: 'scorta' },
-      { name: 'Pane integrale', qty: '1 confezione', tag: 'fresco' },
-      { name: 'Avena', qty: '1 kg', tag: 'scorta' },
-      { name: 'Patate', qty: '1.5 kg', tag: 'fresco' },
-      { name: 'Patate dolci', qty: '1 kg', tag: 'fresco' },
-    ]},
-    { cat: '🥦 Verdure', items: [
-      { name: 'Broccoli / cavolfiore', qty: '700g', tag: 'stagionale' },
-      { name: 'Spinaci surgelati', qty: '500g', tag: 'scorta' },
-      { name: 'Verza / cavolo', qty: '1 piccolo', tag: 'stagionale' },
-      { name: 'Carote', qty: '500g', tag: 'fresco' },
-    ]},
-    { cat: '🍌 Frutta', items: [
-      { name: 'Banane', qty: '8 pezzi', tag: 'fresco' },
-      { name: 'Mele / pere', qty: '6 pezzi', tag: 'stagionale' },
-      { name: 'Arance / kiwi', qty: '6 pezzi', tag: 'stagionale' },
-    ]},
-    { cat: '🫘 Legumi', items: [
-      { name: 'Fagioli borlotti', qty: '2 barattoli', tag: 'scorta' },
-      { name: 'Ceci', qty: '2 barattoli', tag: 'scorta' },
-      { name: 'Lenticchie', qty: '2 barattoli', tag: 'scorta' },
-    ]},
-    { cat: '🧴 Condimenti & Extra', items: [
-      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
-      { name: 'Noci / arachidi', qty: '400g', tag: 'scorta' },
-      { name: 'Burro di arachidi', qty: '1 vasetto', tag: 'scorta' },
-      { name: 'Cioccolato fondente 80%', qty: '100g', tag: 'extra' },
-      { name: 'Miele', qty: '1 vasetto', tag: 'scorta' },
-    ]},
-  ],
-  primavera: [
-    { cat: '🥩 Proteine', items: [
-      { name: 'Petto di pollo', qty: '1 kg', tag: 'fresco' },
-      { name: 'Petto di tacchino', qty: '500g', tag: 'fresco' },
-      { name: 'Pesce bianco (merluzzo)', qty: '400g', tag: 'fresco' },
-      { name: 'Tonno al naturale', qty: '6 scatolette', tag: 'scorta' },
-      { name: 'Gamberi surgelati', qty: '300g', tag: 'scorta' },
-      { name: 'Uova', qty: '12 pezzi', tag: 'base' },
-      { name: 'Yogurt greco 0%', qty: '4 vasetti', tag: 'fresco' },
-      { name: 'Fiocchi di latte', qty: '250g', tag: 'fresco' },
-      { name: 'Ricotta magra', qty: '250g', tag: 'fresco' },
-    ]},
-    { cat: '🌾 Carboidrati', items: [
-      { name: 'Riso basmati', qty: '1 kg', tag: 'scorta' },
-      { name: 'Pasta integrale', qty: '500g', tag: 'scorta' },
-      { name: 'Pane integrale', qty: '1 confezione', tag: 'fresco' },
-      { name: 'Avena', qty: '500g', tag: 'scorta' },
-    ]},
-    { cat: '🥗 Verdure & Frutta', items: [
-      { name: 'Asparagi', qty: '500g', tag: 'stagionale' },
-      { name: 'Spinaci freschi', qty: '300g', tag: 'stagionale' },
-      { name: 'Zucchine', qty: '4 pezzi', tag: 'fresco' },
-      { name: 'Radicchio / lattuga', qty: '1 cespo', tag: 'fresco' },
-      { name: 'Fragole', qty: '500g', tag: 'stagionale' },
-      { name: 'Kiwi', qty: '6 pezzi', tag: 'stagionale' },
-      { name: 'Banane', qty: '6 pezzi', tag: 'fresco' },
-      { name: 'Mirtilli / frutti di bosco', qty: '300g', tag: 'stagionale' },
-    ]},
-    { cat: '🫘 Legumi', items: [
-      { name: 'Ceci (barattolo)', qty: '2 barattoli', tag: 'scorta' },
-    ]},
-    { cat: '🧴 Condimenti & Grassi', items: [
-      { name: 'Olio EVO', qty: '1 bottiglia', tag: 'scorta' },
-      { name: 'Mandorle', qty: '200g', tag: 'scorta' },
-      { name: 'Latte di mandorla', qty: '1L', tag: 'fresco' },
-    ]},
-  ],
-};
+function loadSpesaPage() {
+  currentSpesaSeason = localStorage.getItem('gymSpesaSeason') || getSeasonFromMonth();
+  renderSpesaSeasonBtns();
+  renderSpesaList();
+  renderPantry();
+}
 
-const SPESA_BASE = [
-  { name: 'Sale rosa himalayano', qty: '1 confezione' },
-  { name: 'Olio EVO', qty: '1 bottiglia' },
-  { name: 'Cacao amaro in polvere', qty: '1 confezione' },
-  { name: 'Miele millefiori', qty: '1 vasetto' },
-  { name: 'Cannella in polvere', qty: '1 confezione' },
-  { name: 'Aglio', qty: '1 testa' },
-  { name: 'Salsa di pomodoro', qty: '2 barattoli' },
-  { name: 'Paprika dolce', qty: '1 confezione' },
-  { name: 'Dado/brodo vegetale', qty: '1 confezione' },
-  { name: 'Proteine Whey (opzionale)', qty: '1 kg' },
-];
+function selectSpesaSeason(s) {
+  currentSpesaSeason = s;
+  localStorage.setItem('gymSpesaSeason', s);
+  renderSpesaSeasonBtns();
+  renderSpesaList();
+}
 
-let currentSpesaSeason = 'estate';
+function renderSpesaSeasonBtns() {
+  ['estate','autunno','inverno','primavera'].forEach(s => {
+    document.getElementById('spesa-btn-'+s).classList.toggle('active', s===currentSpesaSeason);
+  });
+}
 
-function showSpesa(season) {
-  currentSpesaSeason = season;
-  document.querySelectorAll('.spesa-list').forEach(d => d.style.display = 'none');
-  document.querySelectorAll('#spesa-season-selector .season-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('spesa-' + season).style.display = 'block';
-  document.getElementById('spesa-btn-' + season).classList.add('active');
-  renderSpesaList(season);
+function renderSpesaList() {
+  const items = SPESA[currentSpesaSeason];
+  const key = 'spesaChecked_'+currentSpesaSeason;
+  const checked = JSON.parse(localStorage.getItem(key) || '[]');
+  const container = document.getElementById('spesa-list');
+  container.innerHTML = items.map((item,i) => {
+    const isChecked = checked.includes(i);
+    return `<div class="shopping-item">
+      <input type="checkbox" id="spesa-${i}" ${isChecked?'checked':''} onchange="toggleSpesaItem(${i})">
+      <label for="spesa-${i}" class="${isChecked?'checked':''}">${item.name}</label>
+      <span class="tag tag-${item.tag}">${item.tag}</span>
+    </div>`;
+  }).join('');
   updateSpesaProgress();
 }
 
-function renderSpesaList(season) {
-  const container = document.getElementById('spesa-' + season);
-  const checked = getSpesaChecked();
-  let html = '';
-  SPESA_DATA[season].forEach(cat => {
-    html += `<div class="card spesa-category">
-      <div class="spesa-category-title">${cat.cat}</div>`;
-    cat.items.forEach(item => {
-      const key = season + '_' + item.name;
-      const isChecked = checked[key];
-      html += `
-      <div class="spesa-item ${isChecked ? 'checked' : ''}" onclick="toggleSpesa('${key}','${season}')">
-        <div class="spesa-checkbox">${isChecked ? '✓' : ''}</div>
-        <div class="spesa-item-info">
-          <div class="spesa-item-name">${item.name}</div>
-          <div class="spesa-item-qty">${item.qty}</div>
-        </div>
-        <span class="spesa-item-tag">${item.tag}</span>
-      </div>`;
-    });
-    html += `</div>`;
-  });
-  container.innerHTML = html;
-
-  // Base list
-  const baseChecked = getSpesaChecked();
-  let baseHtml = '';
-  SPESA_BASE.forEach(item => {
-    const key = 'base_' + item.name;
-    const isChecked = baseChecked[key];
-    baseHtml += `
-    <div class="spesa-item ${isChecked ? 'checked' : ''}" onclick="toggleSpesa('${key}','${season}')">
-      <div class="spesa-checkbox">${isChecked ? '✓' : ''}</div>
-      <div class="spesa-item-info">
-        <div class="spesa-item-name">${item.name}</div>
-        <div class="spesa-item-qty">${item.qty}</div>
-      </div>
-      <span class="spesa-item-tag">base</span>
-    </div>`;
-  });
-  document.getElementById('spesa-base-list').innerHTML = baseHtml;
-}
-
-function toggleSpesa(key, season) {
-  const checked = getSpesaChecked();
-  checked[key] = !checked[key];
-  saveSpesaChecked(checked);
-  renderSpesaList(season);
+function toggleSpesaItem(idx) {
+  const key = 'spesaChecked_'+currentSpesaSeason;
+  const checked = JSON.parse(localStorage.getItem(key) || '[]');
+  const pos = checked.indexOf(idx);
+  if (pos>=0) checked.splice(pos,1); else checked.push(idx);
+  localStorage.setItem(key, JSON.stringify(checked));
+  const label = document.querySelector(`label[for="spesa-${idx}"]`);
+  if (label) label.classList.toggle('checked', checked.includes(idx));
   updateSpesaProgress();
 }
 
 function updateSpesaProgress() {
-  const season = currentSpesaSeason;
-  const checked = getSpesaChecked();
-  const allItems = SPESA_DATA[season].flatMap(c => c.items).map(i => season + '_' + i.name);
-  const baseItems = SPESA_BASE.map(i => 'base_' + i.name);
-  const total = allItems.length + baseItems.length;
-  const done = [...allItems, ...baseItems].filter(k => checked[k]).length;
-  document.getElementById('spesa-counter').textContent = done + ' / ' + total;
-  document.getElementById('spesa-progress').style.width = (total ? (done / total * 100) : 0) + '%';
+  const items = SPESA[currentSpesaSeason];
+  const key = 'spesaChecked_'+currentSpesaSeason;
+  const checked = JSON.parse(localStorage.getItem(key) || '[]');
+  const pct = items.length ? (checked.length/items.length*100) : 0;
+  document.getElementById('spesa-progress').style.width = pct+'%';
+  document.getElementById('spesa-count').textContent = checked.length + ' / ' + items.length + ' articoli';
 }
 
-function checkAllSpesa() {
-  const season = currentSpesaSeason;
-  const checked = getSpesaChecked();
-  SPESA_DATA[season].forEach(cat => cat.items.forEach(item => { checked[season + '_' + item.name] = true; }));
-  SPESA_BASE.forEach(item => { checked['base_' + item.name] = true; });
-  saveSpesaChecked(checked);
-  renderSpesaList(season);
-  updateSpesaProgress();
-  showToast('✅ Tutti i prodotti selezionati!');
+function selectAllSpesa() {
+  const items = SPESA[currentSpesaSeason];
+  const key = 'spesaChecked_'+currentSpesaSeason;
+  localStorage.setItem(key, JSON.stringify(items.map((_,i)=>i)));
+  renderSpesaList();
 }
 
 function clearSpesa() {
-  const season = currentSpesaSeason;
-  const checked = getSpesaChecked();
-  SPESA_DATA[season].forEach(cat => cat.items.forEach(item => { delete checked[season + '_' + item.name]; }));
-  SPESA_BASE.forEach(item => { delete checked['base_' + item.name]; });
-  saveSpesaChecked(checked);
-  renderSpesaList(season);
-  updateSpesaProgress();
-  showToast('🔄 Lista azzerata');
+  const key = 'spesaChecked_'+currentSpesaSeason;
+  localStorage.setItem(key, '[]');
+  renderSpesaList();
 }
 
-function getSpesaChecked() { return JSON.parse(localStorage.getItem('spesaChecked') || '{}'); }
-function saveSpesaChecked(d) { localStorage.setItem('spesaChecked', JSON.stringify(d)); }
+function renderPantry() {
+  const container = document.getElementById('pantry-list');
+  container.innerHTML = PANTRY.map((item,i) => {
+    const key = 'spesaChecked_pantry';
+    const checked = JSON.parse(localStorage.getItem(key) || '[]');
+    const isChecked = checked.includes(i);
+    return `<div class="shopping-item">
+      <input type="checkbox" id="pantry-${i}" ${isChecked?'checked':''} onchange="togglePantry(${i})">
+      <label for="pantry-${i}" class="${isChecked?'checked':''}">${item.name}</label>
+      <span class="tag tag-${item.tag}">${item.tag}</span>
+    </div>`;
+  }).join('');
+}
 
-// Init spesa con stagione corrente
-(function() {
-  const m = new Date().getMonth() + 1;
-  let s = 'estate';
-  if (m >= 9 && m <= 11) s = 'autunno';
-  else if (m === 12 || m <= 2) s = 'inverno';
-  else if (m >= 3 && m <= 5) s = 'primavera';
-  showSpesa(s);
-})();
+function togglePantry(idx) {
+  const key = 'spesaChecked_pantry';
+  const checked = JSON.parse(localStorage.getItem(key) || '[]');
+  const pos = checked.indexOf(idx);
+  if (pos>=0) checked.splice(pos,1); else checked.push(idx);
+  localStorage.setItem(key, JSON.stringify(checked));
+  const label = document.querySelector(`label[for="pantry-${idx}"]`);
+  if (label) label.classList.toggle('checked', checked.includes(idx));
+}
 
-// Registra Service Worker (PWA)
+// ===================== SETTINGS =====================
+function loadSettings() {
+  const profile = JSON.parse(localStorage.getItem('gymProfile') || '{}');
+  if (profile.nome) document.getElementById('s-nome').value = profile.nome;
+  if (profile.peso) document.getElementById('s-peso').value = profile.peso;
+  if (profile.altezza) document.getElementById('s-altezza').value = profile.altezza;
+  if (profile.eta) document.getElementById('s-eta').value = profile.eta;
+  if (profile.obiettivo) document.getElementById('s-obiettivo').value = profile.obiettivo;
+  const days = JSON.parse(localStorage.getItem('gymNotifDays') || '[]');
+  days.forEach(d => { const el=document.getElementById('nd-'+d); if(el) el.checked=true; });
+  const time = localStorage.getItem('gymNotifTime') || '09:00';
+  document.getElementById('notif-time').value = time;
+  const t = localStorage.getItem('gymTheme') || 'dark';
+  document.getElementById('theme-toggle').checked = t==='light';
+}
+
+function saveProfile() {
+  const profile = {
+    nome: document.getElementById('s-nome').value,
+    peso: parseFloat(document.getElementById('s-peso').value)||null,
+    altezza: parseFloat(document.getElementById('s-altezza').value)||null,
+    eta: parseInt(document.getElementById('s-eta').value)||null,
+    obiettivo: document.getElementById('s-obiettivo').value
+  };
+  localStorage.setItem('gymProfile', JSON.stringify(profile));
+  showToast('✅ Profilo salvato!');
+}
+
+function toggleNotif() {
+  const enabled = document.getElementById('notif-toggle').checked;
+  if (enabled && 'Notification' in window) {
+    Notification.requestPermission().then(p=>{
+      if (p!=='granted') { document.getElementById('notif-toggle').checked=false; showToast('Notifiche non autorizzate'); }
+      else showToast('✅ Notifiche abilitate');
+    });
+  }
+}
+
+function saveNotifDays() {
+  const days = [0,1,2,3,4,5,6].filter(d=>document.getElementById('nd-'+d)?.checked);
+  localStorage.setItem('gymNotifDays', JSON.stringify(days));
+}
+
+function saveNotifTime() {
+  localStorage.setItem('gymNotifTime', document.getElementById('notif-time').value);
+}
+
+function exportData() {
+  const data = {};
+  const keys = ['gymPRs','gymHistory','gymWeight','spesaChecked_estate','spesaChecked_autunno','spesaChecked_inverno','spesaChecked_primavera','spesaChecked_pantry','schedaStartDate','schedaCurrent','gymProfile','gymWaterToday','gymTheme','gymNotifDays','gymNotifTime','gymDietSeason','gymSpesaSeason','gymPin'];
+  keys.forEach(k => { const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); });
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='gym-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✅ Backup esportato!');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
+      showToast('✅ Dati importati! Ricarico...');
+      setTimeout(()=>location.reload(), 1500);
+    } catch { showToast('❌ File non valido'); }
+  };
+  reader.readAsText(file);
+}
+
+function changePin() {
+  const current = document.getElementById('pin-current').value;
+  const newPin = document.getElementById('pin-new').value;
+  const confirm = document.getElementById('pin-confirm').value;
+  if (current !== getPin()) { showToast('❌ PIN attuale errato'); return; }
+  if (!/^\d{4}$/.test(newPin)) { showToast('❌ Il PIN deve essere 4 cifre'); return; }
+  if (newPin !== confirm) { showToast('❌ I PIN non coincidono'); return; }
+  localStorage.setItem('gymPin', newPin);
+  document.getElementById('pin-current').value='';
+  document.getElementById('pin-new').value='';
+  document.getElementById('pin-confirm').value='';
+  showToast('✅ PIN aggiornato!');
+}
+
+// ===================== TOAST =====================
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 3000);
+}
+
+// ===================== SERVICE WORKER =====================
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/gymtracker/sw.js')
-      .catch(() => {}); // silenzioso se fallisce
-  });
+  navigator.serviceWorker.register('/gymtracker/sw.js').catch(()=>{});
 }
 </script>
 </body>
