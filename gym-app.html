@@ -236,6 +236,124 @@ nav button.active { color: #2196F3; border-bottom-color: #2196F3; }
 </head>
 <body>
 
+<!-- PIN LOCK SCREEN -->
+<div id="pin-screen" style="
+  position:fixed; inset:0; background:#0f0f1a;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  z-index:9999; padding:24px;">
+  <div style="font-size:3rem; margin-bottom:8px;">💪</div>
+  <div style="font-size:1.4rem; font-weight:bold; color:#90CAF9; margin-bottom:4px;">GymTracker</div>
+  <div style="font-size:0.82rem; color:#666; margin-bottom:32px;">Inserisci il PIN per accedere</div>
+
+  <!-- Display PIN -->
+  <div id="pin-display" style="
+    display:flex; gap:12px; margin-bottom:28px;">
+    <div class="pin-dot" id="dot-0"></div>
+    <div class="pin-dot" id="dot-1"></div>
+    <div class="pin-dot" id="dot-2"></div>
+    <div class="pin-dot" id="dot-3"></div>
+  </div>
+
+  <!-- Messaggio errore -->
+  <div id="pin-error" style="
+    color:#F44336; font-size:0.82rem;
+    margin-bottom:16px; height:20px;
+    transition: opacity 0.3s;"></div>
+
+  <!-- Tastierino numerico -->
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:240px;">
+    <button class="pin-key" onclick="pinPress('1')">1</button>
+    <button class="pin-key" onclick="pinPress('2')">2</button>
+    <button class="pin-key" onclick="pinPress('3')">3</button>
+    <button class="pin-key" onclick="pinPress('4')">4</button>
+    <button class="pin-key" onclick="pinPress('5')">5</button>
+    <button class="pin-key" onclick="pinPress('6')">6</button>
+    <button class="pin-key" onclick="pinPress('7')">7</button>
+    <button class="pin-key" onclick="pinPress('8')">8</button>
+    <button class="pin-key" onclick="pinPress('9')">9</button>
+    <button class="pin-key pin-key-empty" disabled></button>
+    <button class="pin-key" onclick="pinPress('0')">0</button>
+    <button class="pin-key pin-key-del" onclick="pinDel()">⌫</button>
+  </div>
+</div>
+
+<style>
+.pin-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  background: transparent;
+  transition: all 0.15s;
+}
+.pin-dot.filled { background: #2196F3; border-color: #2196F3; }
+.pin-dot.error  { background: #F44336; border-color: #F44336; }
+.pin-key {
+  padding: 18px; background: #1e1e2e;
+  border: 1px solid #2a2a3e; border-radius: 12px;
+  color: #e0e0e0; font-size: 1.3rem; font-weight: bold;
+  cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pin-key:active { background: #2196F3; border-color: #2196F3; color: #fff; transform: scale(0.95); }
+.pin-key-del { color: #888; font-size: 1.1rem; }
+.pin-key-empty { background: transparent; border-color: transparent; cursor: default; }
+</style>
+
+<script>
+// ===== PIN LOCK =====
+const CORRECT_PIN = '1234'; // ← CAMBIA QUI IL TUO PIN
+const PIN_SESSION_KEY = 'gymPinUnlocked';
+let pinInput = '';
+
+function pinPress(digit) {
+  if (pinInput.length >= 4) return;
+  pinInput += digit;
+  updatePinDisplay();
+  if (pinInput.length === 4) {
+    setTimeout(checkPin, 150);
+  }
+}
+
+function pinDel() {
+  pinInput = pinInput.slice(0, -1);
+  updatePinDisplay();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function updatePinDisplay() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
+  }
+}
+
+function checkPin() {
+  if (pinInput === CORRECT_PIN) {
+    sessionStorage.setItem(PIN_SESSION_KEY, '1');
+    const screen = document.getElementById('pin-screen');
+    screen.style.opacity = '0';
+    screen.style.transition = 'opacity 0.4s';
+    setTimeout(() => screen.style.display = 'none', 400);
+  } else {
+    for (let i = 0; i < 4; i++) {
+      document.getElementById('dot-' + i).className = 'pin-dot error';
+    }
+    document.getElementById('pin-error').textContent = 'PIN errato. Riprova.';
+    setTimeout(() => {
+      pinInput = '';
+      updatePinDisplay();
+      document.getElementById('pin-error').textContent = '';
+    }, 800);
+  }
+}
+
+// Controlla se già sbloccato in questa sessione
+if (sessionStorage.getItem(PIN_SESSION_KEY) === '1') {
+  document.getElementById('pin-screen').style.display = 'none';
+}
+</script>
+
 <header>
   <h1>💪 GymTracker</h1>
   <p id="header-date"></p>
